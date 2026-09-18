@@ -52,7 +52,7 @@ export async function renderTeam(container) {
                                 <option value="saloon">Saloon</option>
                                 <option value="all">All Categories</option>
                             </select>
-                            <button type="submit" style="padding: 10px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Add Member</button>
+                            <button type="submit" style="padding: 10px; background: #b8860b; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Add Member</button>
                         </form>
                     </div>
 
