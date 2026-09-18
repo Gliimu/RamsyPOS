@@ -7,32 +7,37 @@ import { createClient } from '@supabase/supabase-js';
 dotenv.config();
 
 const app = express();
-app.use(cors()); // Allow your frontend to talk to this backend
+app.use(cors());
 app.use(express.json());
 
-// Initialize Supabase Admin Client (Using the SECRET service_role key)
 const supabaseAdmin = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-// Health check route
+const DEFAULT_PASSWORD = 'Ramsy4u&me';
+
 app.get('/', (req, res) => {
   res.send('RamsyPOS Backend is running!');
 });
 
-// Route to invite a team member
-app.post('/api/invite', async (req, res) => {
-  const { email, full_name, role, category } = req.body;
+// Create user with Username instead of Email
+app.post('/api/create-user', async (req, res) => {
+  const { username, full_name, role, category } = req.body;
 
-  if (!email || !full_name || !role || !category) {
+  if (!username || !full_name || !role || !category) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
   try {
-    // 1. Send the invitation email using Supabase Admin Auth
-    const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
-      data: {
+    // Convert username to a fake email format for Supabase
+    const fakeEmail = `${username.toLowerCase().replace(/\s+/g, '')}@ramsypos.app`;
+
+    const { data, error } = await supabaseAdmin.auth.admin.createUser({
+      email: fakeEmail,
+      password: DEFAULT_PASSWORD,
+      email_confirm: true,
+      user_metadata: {
         full_name: full_name,
         role: role,
         category: category
@@ -41,9 +46,30 @@ app.post('/api/invite', async (req, res) => {
 
     if (error) throw error;
 
-    res.status(200).json({ message: `Invitation sent to ${email}` });
+    res.status(200).json({ 
+      message: `User created! They can log in with username: ${username} and password: ${DEFAULT_PASSWORD}` 
+    });
   } catch (error) {
-    console.error('Error inviting user:', error);
+    console.error('Error creating user:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Manager Reset Password
+app.post('/api/reset-password', async (req, res) => {
+  const { user_id } = req.body;
+
+  try {
+    const { data, error } = await supabaseAdmin.auth.admin.updateUserById(
+      user_id,
+      { password: DEFAULT_PASSWORD }
+    );
+
+    if (error) throw error;
+
+    res.status(200).json({ message: `Password reset to default (${DEFAULT_PASSWORD})` });
+  } catch (error) {
+    console.error('Error resetting password:', error);
     res.status(500).json({ error: error.message });
   }
 });
