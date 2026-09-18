@@ -367,7 +367,7 @@ button[type="button"] {
     background-size: 600px; 
     background-position: 10% center; /* Pushed to the left side */
     background-repeat: no-repeat;
-    padding: 20px;
+    padding: 200px;
     position: relative;
     overflow: hidden; 
 }
