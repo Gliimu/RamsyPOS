@@ -1,4 +1,5 @@
 // pos.js
+import { printReceipt } from '../utils/print.js';
 import { state, clearUser } from '../state.js';
 import { getItems } from '../api.js';
 
@@ -152,6 +153,16 @@ function checkout() {
         alert('Cart is empty!');
         return;
     }
+    
+    const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    
+    // Call the print function, passing the cart, total, and the logged-in user's name
+    printReceipt(cart, total, state.user.name);
+    
+    // Clear cart after checkout
+    cart = [];
+    renderCart();
+}
     
     alert('Checkout successful! Receipt sent to printer.');
     cart = [];
