@@ -196,7 +196,6 @@ body.dark-mode .pos-item:hover {
     border-color: var(--border);
 }
 
-
 /* Transaction History Row Hover */
 .tx-row {
     transition: background-color 0.2s ease;
@@ -204,4 +203,48 @@ body.dark-mode .pos-item:hover {
 }
 .tx-row:hover {
     background-color: var(--bg);
+}
+
+
+/* POS Item Price Color */
+.item-price {
+    color: #b8860b; /* Brownish-gold */
+    font-weight: bold;
+}
+
+/* Mode of Payment Select */
+.mop-select {
+    width: 100%;
+    padding: 12px;
+    margin-top: 15px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 16px;
+    background: var(--card-bg);
+    color: var(--text);
+    cursor: pointer;
+}
+
+/* Checkout Button */
+.checkout-btn {
+    width: 100%;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.9); /* 90% Black */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: background 0.2s;
+}
+
+.checkout-btn:hover {
+    background: rgba(0, 0, 0, 1); /* 100% Black on hover */
+}
+
+.checkout-btn:disabled {
+    background: #6b7280;
+    cursor: not-allowed;
 }
