@@ -16,7 +16,7 @@ export function printReceipt(cart, total, attendantName) {
     const receiptHTML = `
         <div class="receipt-header">
             <h2>RamsyPOS</h2>
-            <p>Maitama 2, Berger Qwarry Road, FCT-Abuja</p>
+            <p>123 Maitama 2, Berger Qwarry Road, FCT-Abuja</p>
             <p>Tel: 080123456789</p>
             <p>${date}</p>
         </div>
