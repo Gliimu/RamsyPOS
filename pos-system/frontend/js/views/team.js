@@ -35,7 +35,7 @@ export async function renderTeam(container) {
                 <div style="display: grid; grid-template-columns: 300px 1fr; gap: 20px;">
                     
                     <!-- Add Member Form -->
-                    <div style="padding: 20px; border-radius: 8px; height: fit-content;">
+            <div style="background: var(--card-bg); padding: 20px; border-radius: 8px;">
                         <h3 style="margin-bottom: 20px;">Add Team Member</h3>
                         <form id="add-member-form" style="display: flex; flex-direction: column; gap: 15px;">
                             <input type="text" id="member-name" placeholder="Full Name" required style="padding: 10px; border: 1px solid var(--border); border-radius: 6px;">
