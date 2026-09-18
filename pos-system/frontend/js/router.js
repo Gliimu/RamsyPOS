@@ -3,7 +3,7 @@ import { renderLogin } from './views/login.js';
 import { renderDashboard } from './views/dashboard.js';
 import { renderPos } from './views/pos.js';
 import { renderInventory } from './views/inventory.js';
-import { renderTeam } from './views/team.js'; // <-- ADD THIS
+import { renderTeam } from './views/team.js';
 
 const routes = {
     '/': renderLogin,
@@ -11,7 +11,7 @@ const routes = {
     '#dashboard': renderDashboard,
     '#pos': renderPos,
     '#inventory': renderInventory,
-    '#team': renderTeam // <-- ADD THIS
+    '#team': renderTeam
 };
 
 export function navigateTo(hash) {
