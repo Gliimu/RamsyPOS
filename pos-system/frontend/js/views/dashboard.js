@@ -5,15 +5,11 @@ import { supabase } from '../config/supabaseClient.js';
 
 export async function renderDashboard(container) {
     const user = state.user || { name: 'Guest', role: 'admin' };
-    
-    // Fetch team members for the dropdown filter
     const { data: profiles } = await supabase.from('profiles').select('full_name').order('full_name', { ascending: true });
     
     container.innerHTML = `
         <div class="app-layout">
-            <aside class="sidebar">
-                ${getSidebar('dashboard', user.role)}
-            </aside>
+            <aside class="sidebar">${getSidebar('dashboard', user.role)}</aside>
             <header class="topbar">
                 <h2>Analytics</h2>
                 <div style="display: flex; align-items: center; gap: 15px;">
@@ -25,7 +21,7 @@ export async function renderDashboard(container) {
             </header>
             <main class="main-content">
                 
-                <!-- Stats Container (At Top) -->
+                <!-- Stats Container -->
                 <div id="stats-container" style="background: var(--card-bg); padding: 25px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-around; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                     <div style="text-align: center;">
                         <h3 style="color: var(--text-muted); font-size: 14px; margin-bottom: 5px;">Revenue</h3>
@@ -40,25 +36,42 @@ export async function renderDashboard(container) {
 
                 <!-- Filters -->
                 <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
-                    <div style="display: flex; gap: 10px;">
-                        <button class="filter-btn active" data-range="today">Today</button>
-                        <button class="filter-btn" data-range="month">This Month</button>
-                        <button class="filter-btn" data-range="all">All Time</button>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <select id="time-filter" class="filter-btn" style="cursor: pointer;">
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                            <option value="year">This Year</option>
+                        </select>
+                        <input type="date" id="date-filter" class="filter-btn" style="cursor: pointer;" />
                     </div>
-                    <select id="attendant-filter" style="padding: 8px 16px; border: 1px solid var(--border); border-radius: 6px; background: var(--card-bg); color: var(--text); cursor: pointer;">
+                    <select id="attendant-filter" class="filter-btn" style="cursor: pointer;">
                         <option value="all">All Attendants</option>
                         ${profiles ? profiles.map(p => `<option value="${p.full_name}">${p.full_name}</option>`).join('') : ''}
                     </select>
                 </div>
                 
-                <!-- Recent Transactions Table -->
+                <!-- Transaction History -->
                 <div style="background: var(--card-bg); padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                    <h3 style="color: var(--text);">Recent Transactions</h3>
+                    <h3 style="color: var(--text);">Transaction History</h3>
                     <div id="recent-sales" style="margin-top: 15px;">
                         <p style="color: var(--text-muted);">Loading...</p>
                     </div>
                 </div>
             </main>
+        </div>
+
+        <!-- Hidden Items Modal -->
+        <div id="items-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:50; justify-content:center; align-items:center;">
+            <div style="background:var(--card-bg); padding:30px; border-radius:12px; width:400px; max-height: 80vh; overflow-y: auto;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h3 style="color:var(--primary);">Items Sold</h3>
+                    <button id="close-modal" class="icon-btn">
+                        <svg width="24" height="24" fill="none" stroke="var(--text-muted)" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+                <div id="modal-items-list"></div>
+            </div>
         </div>
     `;
 
@@ -68,44 +81,41 @@ export async function renderDashboard(container) {
         window.location.hash = '#login';
     });
 
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            e.target.classList.add('active');
-            const range = e.target.dataset.range;
-            const attendant = document.getElementById('attendant-filter').value;
-            loadAnalytics(range, attendant);
-        });
+    document.getElementById('time-filter').addEventListener('change', applyFilters);
+    document.getElementById('date-filter').addEventListener('change', applyFilters);
+    document.getElementById('attendant-filter').addEventListener('change', applyFilters);
+    document.getElementById('close-modal').addEventListener('click', () => {
+        document.getElementById('items-modal').style.display = 'none';
     });
 
-    document.getElementById('attendant-filter').addEventListener('change', (e) => {
-        const activeRange = document.querySelector('.filter-btn.active').dataset.range;
-        loadAnalytics(activeRange, e.target.value);
-    });
+    await loadAnalytics('today', 'all', null);
 
-    await loadAnalytics('today', 'all');
+    function applyFilters() {
+        const time = document.getElementById('time-filter').value;
+        const date = document.getElementById('date-filter').value;
+        const attendant = document.getElementById('attendant-filter').value;
+        loadAnalytics(time, attendant, date);
+    }
 }
 
-async function loadAnalytics(range, attendant) {
-    const { data: allSales, error } = await supabase
-        .from('sales')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-    if (error) {
-        console.error('Error fetching sales:', error);
-        return;
-    }
+async function loadAnalytics(range, attendant, specificDate) {
+    const { data: allSales, error } = await supabase.from('sales').select('*').order('created_at', { ascending: false });
+    if (error) { console.error('Error fetching sales:', error); return; }
 
     let filteredSales = allSales;
     const now = new Date();
     const todayStr = now.toISOString().split('T')[0];
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const monthStr = now.toISOString().substring(0, 7);
+    const yearStr = now.getFullYear().toString();
 
-    if (range === 'today') {
-        filteredSales = allSales.filter(sale => sale.created_at.startsWith(todayStr));
-    } else if (range === 'month') {
-        filteredSales = allSales.filter(sale => sale.created_at.startsWith(monthStr));
+    if (specificDate) {
+        filteredSales = allSales.filter(sale => sale.created_at.startsWith(specificDate));
+    } else {
+        if (range === 'today') filteredSales = allSales.filter(sale => sale.created_at.startsWith(todayStr));
+        else if (range === 'week') filteredSales = allSales.filter(sale => new Date(sale.created_at) >= weekAgo);
+        else if (range === 'month') filteredSales = allSales.filter(sale => sale.created_at.startsWith(monthStr));
+        else if (range === 'year') filteredSales = allSales.filter(sale => sale.created_at.startsWith(yearStr));
     }
 
     if (attendant !== 'all') {
@@ -113,7 +123,6 @@ async function loadAnalytics(range, attendant) {
     }
 
     const revenue = filteredSales.reduce((sum, sale) => sum + sale.total_amount, 0);
-    
     document.getElementById('stat-revenue').innerText = `₦${revenue.toLocaleString()}`;
     document.getElementById('stat-transactions').innerText = filteredSales.length;
 
@@ -134,15 +143,37 @@ async function loadAnalytics(range, attendant) {
                 </tr>
             </thead>
             <tbody>
-                ${filteredSales.slice(0, 10).map(sale => `
-                    <tr style="border-bottom: 1px solid var(--border);">
+                ${filteredSales.slice(0, 50).map(sale => `
+                    <tr style="border-bottom: 1px solid var(--border); cursor: pointer;" class="view-items-btn" data-items='${JSON.stringify(sale.items)}'>
                         <td style="padding: 10px; color: var(--text);">${new Date(sale.created_at).toLocaleString()}</td>
                         <td style="padding: 10px; color: var(--text);">${sale.attendant_name}</td>
-                        <td style="padding: 10px; color: var(--text);">${sale.items.length} item(s)</td>
+                        <td style="padding: 10px; color: var(--primary); text-decoration: underline;">View ${sale.items.length} item(s)</td>
                         <td style="padding: 10px; font-weight: bold; color: var(--text);">₦${sale.total_amount.toLocaleString()}</td>
                     </tr>
                 `).join('')}
             </tbody>
         </table>
     `;
+
+    document.querySelectorAll('.view-items-btn').forEach(row => {
+        row.addEventListener('click', (e) => {
+            // Ensure we don't break if JSON has single quotes (basic escape)
+            let items = [];
+            try {
+                items = JSON.parse(e.currentTarget.dataset.items);
+            } catch (err) {
+                console.error("Error parsing items", err);
+            }
+            
+            const modalList = document.getElementById('modal-items-list');
+            modalList.innerHTML = items.map(item => `
+                <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
+                    <span style="color: var(--text);">${item.qty}x ${item.name}</span>
+                    <span style="color: var(--text); font-weight: bold;">₦${(item.price * item.qty).toLocaleString()}</span>
+                </div>
+            `).join('');
+            
+            document.getElementById('items-modal').style.display = 'flex';
+        });
+    });
 }
