@@ -42,9 +42,9 @@ export async function getTeam() {
     return team ? JSON.parse(team) : [];
 }
 
-export async function addTeamMember(name, role, category) {
+export async function addTeamMember(name, email, role, category) {
     const team = await getTeam();
-    const newMember = { id: Date.now(), name, role, category };
+    const newMember = { id: Date.now(), name, email, role, category };
     team.push(newMember);
     localStorage.setItem(TEAM_KEY, JSON.stringify(team));
     return newMember;
