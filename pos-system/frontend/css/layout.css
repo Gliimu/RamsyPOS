@@ -57,3 +57,14 @@
 .sidebar-logo img {
     height: 40px;
 }
+
+
+.nav-item {
+    display: flex;
+    align-items: center;
+}
+
+.nav-item svg {
+    margin-right: 10px;
+    flex-shrink: 0;
+}
