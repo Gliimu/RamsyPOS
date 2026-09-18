@@ -1,7 +1,7 @@
 // pos.js
-import { printReceipt } from '../utils/print.js';
 import { state, clearUser } from '../state.js';
 import { getItems } from '../api.js';
+import { printReceipt } from '../utils/print.js';
 
 let cart = [];
 let currentCategory = 'gym'; // Default tab
@@ -82,6 +82,11 @@ function renderItems(items) {
     const grid = document.getElementById('pos-grid');
     const filteredItems = items.filter(item => item.category === currentCategory);
     
+    if (filteredItems.length === 0) {
+        grid.innerHTML = '<p style="color: var(--text-muted); text-align: center;">No items in this category yet.</p>';
+        return;
+    }
+
     grid.innerHTML = filteredItems.map(item => `
         <div class="pos-item" onclick="window.addToCart(${item.id})">
             <div class="item-name">${item.name}</div>
@@ -92,8 +97,6 @@ function renderItems(items) {
 
 // Make addToCart global so inline onclick can access it
 window.addToCart = (itemId) => {
-    // Since we don't have the items array globally here, we re-fetch or we can structure better later. 
-    // For mock purposes, let's just simulate finding it.
     getItems().then(items => {
         const item = items.find(i => i.id === itemId);
         if (!item) return;
@@ -156,15 +159,10 @@ function checkout() {
     
     const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
     
-    // Call the print function, passing the cart, total, and the logged-in user's name
+    // Call the print function
     printReceipt(cart, total, state.user.name);
     
     // Clear cart after checkout
-    cart = [];
-    renderCart();
-}
-    
-    alert('Checkout successful! Receipt sent to printer.');
     cart = [];
     renderCart();
 }
