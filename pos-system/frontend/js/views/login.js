@@ -1,5 +1,6 @@
 // login.js
 import { setUser } from '../state.js';
+import { supabase } from '../config/supabaseClient.js';
 
 export function renderLogin(container) {
     container.innerHTML = `
@@ -24,29 +25,46 @@ export function renderLogin(container) {
                 </form>
                 
                 <p style="text-align: center; color: var(--text-muted); font-size: 12px; margin-top: 20px;">
-                    Mock Logins: admin@ramsy.com / admin123 <br> pos@ramsy.com / pos123
+                    Make sure you have added a user in your Supabase Dashboard.
                 </p>
             </div>
         </div>
     `;
 
-    document.getElementById('login-form').addEventListener('submit', (e) => {
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
 
-        // Mock Authentication Logic (Will be replaced by Supabase Auth)
-        if (email === 'admin@ramsy.com' && password === 'admin123') {
-            setUser('Admin Manager', 'admin');
-            window.location.hash = '#dashboard';
-        } else if (email === 'manager@ramsy.com' && password === 'manager123') {
-            setUser('System Manager', 'manager');
-            window.location.hash = '#dashboard';
-        } else if (email === 'pos@ramsy.com' && password === 'pos123') {
-            setUser('POS Attendant', 'pos_attendant');
-            window.location.hash = '#pos';
-        } else {
-            alert('Invalid credentials! Check the mock logins below the button.');
+        try {
+            // 1. Sign in with Supabase Auth
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
+
+            if (error) throw error;
+
+            // 2. Fetch the user's role from the 'profiles' table
+            const { data: profile, error: profileError } = await supabase
+                .from('profiles')
+                .select('full_name, role, category')
+                .eq('id', data.user.id)
+                .single();
+
+            if (profileError) throw profileError;
+
+            // 3. Set user state in our app and redirect
+            setUser(profile.full_name, profile.role, profile.category);
+            
+            if (profile.role === 'manager' || profile.role === 'admin') {
+                window.location.hash = '#dashboard';
+            } else {
+                window.location.hash = '#pos';
+            }
+
+        } catch (error) {
+            alert('Login failed: ' + error.message);
         }
     });
 }
