@@ -57,7 +57,7 @@ export async function renderTeam(container) {
                     </div>
 
                     <!-- Team Table -->
-                    <div style="background: white; padding: 20px; border-radius: 8px;">
+                    <div style="background: var(--card-bg); padding: 20px; border-radius: 8px;">
                         <h3 style="margin-bottom: 20px;">Current Team</h3>
                         <table style="width: 100%; border-collapse: collapse;">
                             <thead>
