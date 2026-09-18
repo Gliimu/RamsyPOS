@@ -10,6 +10,13 @@ export async function renderTeam(container) {
     let team = await getTeam();
 
     container.innerHTML = `
+        <style>
+            .icon-btn { background: transparent; border: none; cursor: pointer; padding: 5px; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+            .icon-btn:hover { background: #f1f5f9; }
+            .status-dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+            .status-online { background: var(--success); }
+            .status-offline { background: #94a3b8; }
+        </style>
         <div class="app-layout">
             <aside class="sidebar">
                 ${getSidebar('team', user.role)}
@@ -55,13 +62,12 @@ export async function renderTeam(container) {
                                     <th style="padding: 10px;">Name</th>
                                     <th style="padding: 10px;">Username</th>
                                     <th style="padding: 10px;">Role</th>
-                                    <th style="padding: 10px;">Actions</th>
+                                    <th style="padding: 10px; text-align: right;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="team-table"></tbody>
                         </table>
                     </div>
-                    
                 </div>
             </main>
         </div>
@@ -92,6 +98,19 @@ export async function renderTeam(container) {
                 </form>
             </div>
         </div>
+
+        <!-- Hidden Details Modal -->
+        <div id="details-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:50; justify-content:center; align-items:center;">
+            <div style="background:white; padding:30px; border-radius:12px; width:400px; box-shadow: 0 10px 15px rgba(0,0,0,0.1);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h3 style="color:var(--primary);">User Details</h3>
+                    <button id="close-details" class="icon-btn">
+                        <svg width="24" height="24" fill="none" stroke="#64748b" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+                <div id="details-content" style="font-size: 16px; line-height: 2;"></div>
+            </div>
+        </div>
     `;
 
     document.getElementById('logout-btn').addEventListener('click', async () => {
@@ -102,6 +121,10 @@ export async function renderTeam(container) {
 
     document.getElementById('cancel-edit').addEventListener('click', () => {
         document.getElementById('edit-modal').style.display = 'none';
+    });
+
+    document.getElementById('close-details').addEventListener('click', () => {
+        document.getElementById('details-modal').style.display = 'none';
     });
 
     document.getElementById('add-member-form').addEventListener('submit', async (e) => {
@@ -160,37 +183,28 @@ export async function renderTeam(container) {
             tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--text-muted);">No team members added yet</td></tr>';
             return;
         }
+        
+        // SVG Icons
+        const editIcon = `<svg width="16" height="16" fill="none" stroke="var(--primary)" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
+        const resetIcon = `<svg width="16" height="16" fill="none" stroke="#f59e0b" stroke-width="2" viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 6.5m0 0l3 3L22 6l-3-3m-3.5 3.5L19 9"></path></svg>`;
+        const detailsIcon = `<svg width="16" height="16" fill="none" stroke="#64748b" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+
         tbody.innerHTML = teamArray.map(m => `
             <tr style="border-bottom: 1px solid var(--border);">
                 <td style="padding: 10px;">${m.full_name || 'N/A'}</td>
                 <td style="padding: 10px;">${m.email.replace('@ramsypos.app', '')}</td>
                 <td style="padding: 10px; text-transform: capitalize;">${m.role.replace('_', ' ')}</td>
-                <td style="padding: 10px; display: flex; gap: 5px; flex-wrap: wrap;">
-                    <button class="edit-btn" data-id="${m.id}" style="padding: 5px 10px; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer;">Edit</button>
-                    <button class="reset-btn" data-id="${m.id}" style="padding: 5px 10px; background: #f59e0b; color: white; border: none; border-radius: 4px; cursor: pointer;">Reset Pass</button>
-                    <button class="delete-btn" data-id="${m.id}" style="padding: 5px 10px; background: var(--danger); color: white; border: none; border-radius: 4px; cursor: pointer;">Delete</button>
+                <td style="padding: 10px; display: flex; gap: 10px; justify-content: flex-end;">
+                    <button class="icon-btn details-btn" data-id="${m.id}" title="View Details">${detailsIcon}</button>
+                    <button class="icon-btn edit-btn" data-id="${m.id}" title="Edit User">${editIcon}</button>
+                    <button class="icon-btn reset-btn" data-id="${m.id}" title="Reset Password">${resetIcon}</button>
                 </td>
             </tr>
         `).join('');
 
-        document.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                const id = e.target.dataset.id;
-                if(confirm('Are you sure you want to delete this user?')) {
-                    try {
-                        await supabase.from('profiles').delete().eq('id', id);
-                        team = await getTeam();
-                        renderTable(team);
-                    } catch (err) {
-                        alert('Error deleting member');
-                    }
-                }
-            });
-        });
-
         document.querySelectorAll('.reset-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
-                const id = e.target.dataset.id;
+                const id = e.currentTarget.dataset.id;
                 if(confirm('Reset this user\'s password to Ramsy4u&me?')) {
                     try {
                         const response = await fetch(`${BACKEND_URL}/api/reset-password`, {
@@ -210,7 +224,7 @@ export async function renderTeam(container) {
 
         document.querySelectorAll('.edit-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const id = e.target.dataset.id;
+                const id = e.currentTarget.dataset.id;
                 const member = team.find(m => m.id === id);
                 
                 document.getElementById('edit-id').value = member.id;
@@ -219,6 +233,28 @@ export async function renderTeam(container) {
                 document.getElementById('edit-category').value = member.category;
                 
                 document.getElementById('edit-modal').style.display = 'flex';
+            });
+        });
+
+        document.querySelectorAll('.details-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = e.currentTarget.dataset.id;
+                const member = team.find(m => m.id === id);
+                
+                // Mocking online status for now. We will implement real presence later.
+                const isOnline = Math.random() > 0.5; 
+                const statusClass = isOnline ? 'status-online' : 'status-offline';
+                const statusText = isOnline ? 'Online' : 'Offline';
+                
+                document.getElementById('details-content').innerHTML = `
+                    <p><strong>Name:</strong> ${member.full_name || 'N/A'}</p>
+                    <p><strong>Username:</strong> ${member.email.replace('@ramsypos.app', '')}</p>
+                    <p><strong>Role:</strong> <span style="text-transform:capitalize;">${member.role.replace('_', ' ')}</span></p>
+                    <p><strong>Category:</strong> <span style="text-transform:capitalize;">${member.category}</span></p>
+                    <p><strong>Status:</strong> <span class="${statusClass} status-dot"></span>${statusText}</p>
+                `;
+                
+                document.getElementById('details-modal').style.display = 'flex';
             });
         });
     }
