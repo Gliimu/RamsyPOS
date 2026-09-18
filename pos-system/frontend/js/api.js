@@ -22,6 +22,21 @@ export async function deleteItem(id) {
     if (error) throw error;
 }
 
+export async function updateItem(id, name, price, category, imageUrl) {
+    const { data, error } = await supabase
+        .from('items')
+        .update({ 
+            name, 
+            price: parseFloat(price), 
+            category, 
+            image_url: imageUrl 
+        })
+        .eq('id', id)
+        .select();
+    if (error) throw error;
+    return data[0];
+}
+
 // --- Sales API ---
 export async function saveSale(cart, total, attendantName) {
     const { data, error } = await supabase
