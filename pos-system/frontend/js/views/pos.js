@@ -1,15 +1,16 @@
 // pos.js
 import { state, clearUser } from '../state.js';
-import { getItems, saveSale } from '../api.js'; // <-- Added saveSale
+import { getItems, saveSale } from '../api.js';
 import { getSidebar } from '../layouts/sidebar.js';
 import { printReceipt } from '../utils/print.js';
+import { supabase } from '../config/supabaseClient.js';
 
 let cart = [];
-let currentCategory = 'gym';
+let currentCategory = 'gym'; // Default tab
 
 export async function renderPos(container) {
     const user = state.user || { name: 'Guest', role: 'pos_attendant' };
-    const items = await getItems();
+    const items = await getItems(); // Fetch items from Supabase
     
     container.innerHTML = `
         <div class="app-layout">
@@ -25,6 +26,8 @@ export async function renderPos(container) {
             </header>
             <main class="main-content">
                 <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; height: 100%;">
+                    
+                    <!-- Left Side: Items -->
                     <div style="background: white; padding: 20px; border-radius: 8px; overflow-y: auto;">
                         <div class="pos-tabs">
                             <button class="tab-btn active" data-cat="gym">Gym</button>
@@ -34,21 +37,27 @@ export async function renderPos(container) {
                         </div>
                         <div id="pos-grid" class="pos-grid"></div>
                     </div>
+
+                    <!-- Right Side: Cart -->
                     <div style="background: white; padding: 20px; border-radius: 8px; display: flex; flex-direction: column;">
                         <h3 style="margin-bottom: 20px;">Current Order</h3>
                         <div id="cart-container" class="cart-list"></div>
+                        
                         <div class="cart-total">
                             <span>Total:</span>
                             <span>₦<span id="cart-total">0</span></span>
                         </div>
                         <button id="checkout-btn" class="checkout-btn">Checkout & Print</button>
                     </div>
+                    
                 </div>
             </main>
         </div>
     `;
 
-    document.getElementById('logout-btn').addEventListener('click', () => {
+    // Event Listeners
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+        await supabase.auth.signOut();
         clearUser();
         window.location.hash = '#login';
     });
@@ -63,6 +72,8 @@ export async function renderPos(container) {
     });
 
     document.getElementById('checkout-btn').addEventListener('click', checkout);
+
+    // Initial Render
     renderItems(items);
     renderCart();
 }
@@ -76,26 +87,28 @@ function renderItems(items) {
         return;
     }
 
+    // Note: We wrap item.id in quotes ('${item.id}') because Supabase UUIDs are strings
     grid.innerHTML = filteredItems.map(item => `
-        <div class="pos-item" onclick="window.addToCart(${item.id})">
+        <div class="pos-item" onclick="window.addToCart('${item.id}')">
             <div class="item-name">${item.name}</div>
             <div class="item-price">₦${item.price.toLocaleString()}</div>
         </div>
     `).join('');
 }
 
-window.addToCart = (itemId) => {
-    getItems().then(items => {
-        const item = items.find(i => i.id === itemId);
-        if (!item) return;
-        const existingItem = cart.find(ci => ci.id === itemId);
-        if (existingItem) {
-            existingItem.qty += 1;
-        } else {
-            cart.push({ ...item, qty: 1 });
-        }
-        renderCart();
-    });
+// Make addToCart global so inline onclick can access it
+window.addToCart = async (itemId) => {
+    const items = await getItems();
+    const item = items.find(i => i.id === itemId);
+    if (!item) return;
+
+    const existingItem = cart.find(ci => ci.id === itemId);
+    if (existingItem) {
+        existingItem.qty += 1;
+    } else {
+        cart.push({ ...item, qty: 1 });
+    }
+    renderCart();
 }
 
 function renderCart() {
@@ -115,9 +128,9 @@ function renderCart() {
                 <div style="font-size: 12px; color: var(--text-muted);">₦${item.price.toLocaleString()} each</div>
             </div>
             <div class="qty-controls">
-                <button class="qty-btn" onclick="window.updateQty(${item.id}, -1)">-</button>
+                <button class="qty-btn" onclick="window.updateQty('${item.id}', -1)">-</button>
                 <span>${item.qty}</span>
-                <button class="qty-btn" onclick="window.updateQty(${item.id}, 1)">+</button>
+                <button class="qty-btn" onclick="window.updateQty('${item.id}', 1)">+</button>
             </div>
             <div style="font-weight: bold; width: 80px; text-align: right;">₦${(item.price * item.qty).toLocaleString()}</div>
         </div>
@@ -130,6 +143,7 @@ function renderCart() {
 window.updateQty = (itemId, change) => {
     const item = cart.find(ci => ci.id === itemId);
     if (!item) return;
+    
     item.qty += change;
     if (item.qty <= 0) {
         cart = cart.filter(ci => ci.id !== itemId);
@@ -158,3 +172,4 @@ async function checkout() {
     } catch (error) {
         alert('Error saving sale: ' + error.message);
     }
+}
