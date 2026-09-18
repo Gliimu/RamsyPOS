@@ -12,7 +12,7 @@ export function renderDashboard(container) {
                 </div>
                 <div class="nav-item active">📊 Dashboard</div>
                 <div class="nav-item" onclick="window.location.hash='#pos'">🛒 Point of Sale</div>
-                <div class="nav-item">📦 Inventory</div>
+                <div class="nav-item" onclick="window.location.hash='#inventory'">📦 Inventory</div>
             </aside>
             <header class="topbar">
                 <h2>Admin Dashboard</h2>
