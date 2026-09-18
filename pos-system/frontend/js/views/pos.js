@@ -6,13 +6,13 @@ import { printReceipt } from '../utils/print.js';
 import { supabase } from '../config/supabaseClient.js';
 
 let cart = [];
-let currentCategory = 'food'; // Default tab
-let allItems = []; // Store all items for search
+let currentCategory = 'all'; // Default to all
+let allItems = [];
 let searchQuery = '';
 
 export async function renderPos(container) {
     const user = state.user || { name: 'Guest', role: 'pos_attendant' };
-    allItems = await getItems(); // Fetch items from Supabase
+    allItems = await getItems();
     
     container.innerHTML = `
         <div class="app-layout">
@@ -21,27 +21,36 @@ export async function renderPos(container) {
             </aside>
             <header class="topbar">
                 <h2>Point of Sale</h2>
-                <div>
-                    <span style="margin-right: 15px;">${user.name}</span>
-                    <button id="logout-btn" style="padding: 8px 16px; background: var(--danger); color: white; border: none; border-radius: 6px; cursor: pointer;">Logout</button>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <span>${user.name}</span>
+                    <button id="logout-btn" class="icon-btn" title="Logout">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    </button>
                 </div>
             </header>
             <main class="main-content">
                 <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; height: 100%;">
                     
-                    <!-- Left Side: Items -->
                     <div style="background: var(--card-bg); padding: 20px; border-radius: 8px; overflow-y: auto;">
-                        <input type="text" id="search-input" placeholder="Search items..." style="width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px; background: var(--card-bg); color: var(--text);">
-                        
-                        <div class="pos-tabs">
-                            <button class="tab-btn active" data-cat="food">Food</button>
-                            <button class="tab-btn" data-cat="drinks">Drinks</button>
-                            <button class="tab-btn" data-cat="services">Services</button>
+                        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                            <input type="text" id="search-input" placeholder="Search items..." style="flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px; background: var(--card-bg); color: var(--text);">
+                            
+                            <div class="pos-filter-dropdown">
+                                <button id="filter-toggle-btn" class="icon-btn" title="Filter Categories" style="border: 1px solid var(--border); width: 48px;">
+                                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+                                </button>
+                                <div id="filter-menu" class="dropdown-menu">
+                                    <div class="dropdown-item active" data-cat="all">All Items</div>
+                                    <div class="dropdown-item" data-cat="food">Food</div>
+                                    <div class="dropdown-item" data-cat="drinks">Drinks</div>
+                                    <div class="dropdown-item" data-cat="services">Services</div>
+                                </div>
+                            </div>
                         </div>
+                        
                         <div id="pos-grid" class="pos-grid"></div>
                     </div>
 
-                    <!-- Right Side: Cart -->
                     <div style="background: var(--card-bg); padding: 20px; border-radius: 8px; display: flex; flex-direction: column;">
                         <h3 style="margin-bottom: 20px; color: var(--text);">Current Order</h3>
                         <div id="cart-container" class="cart-list"></div>
@@ -67,11 +76,17 @@ export async function renderPos(container) {
         renderItems();
     });
 
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('filter-toggle-btn').addEventListener('click', () => {
+        const menu = document.getElementById('filter-menu');
+        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    });
+
+    document.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            document.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
             e.target.classList.add('active');
             currentCategory = e.target.dataset.cat;
+            document.getElementById('filter-menu').style.display = 'none';
             renderItems();
         });
     });
@@ -84,9 +99,11 @@ export async function renderPos(container) {
 
 function renderItems() {
     const grid = document.getElementById('pos-grid');
+    let filteredItems = allItems;
     
-    // Filter by category AND search query
-    let filteredItems = allItems.filter(item => item.category === currentCategory);
+    if (currentCategory !== 'all') {
+        filteredItems = filteredItems.filter(item => item.category === currentCategory);
+    }
     if (searchQuery) {
         filteredItems = filteredItems.filter(item => item.name.toLowerCase().includes(searchQuery));
     }
