@@ -8,10 +8,10 @@ export async function getItems() {
     return data || [];
 }
 
-export async function addItem(name, price, category) {
+export async function addItem(name, price, category, imageUrl) {
     const { data, error } = await supabase
         .from('items')
-        .insert([{ name, price: parseFloat(price), category }])
+        .insert([{ name, price: parseFloat(price), category, image_url: imageUrl }])
         .select();
     if (error) throw error;
     return data[0];
@@ -30,7 +30,7 @@ export async function saveSale(cart, total, attendantName) {
             { 
                 attendant_name: attendantName, 
                 total_amount: total, 
-                items: cart // Save the entire cart array as JSON
+                items: cart 
             }
         ]);
     if (error) throw error;
