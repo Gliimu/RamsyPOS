@@ -1,7 +1,7 @@
 // team.js
 import { state, clearUser } from '../state.js';
 import { getSidebar } from '../layouts/sidebar.js';
-import { getTeam, addTeamMember, deleteTeamMember } from '../api.js';
+import { supabase } from '../config/supabaseClient.js';
 
 export async function renderTeam(container) {
     const user = state.user || { name: 'Guest', role: 'manager' };
@@ -64,7 +64,8 @@ export async function renderTeam(container) {
         </div>
     `;
 
-    document.getElementById('logout-btn').addEventListener('click', () => {
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+        await supabase.auth.signOut();
         clearUser();
         window.location.hash = '#login';
     });
@@ -76,12 +77,34 @@ export async function renderTeam(container) {
         const role = document.getElementById('member-role').value;
         const category = document.getElementById('member-category').value;
         
-        await addTeamMember(name, email, role, category);
-        team = await getTeam();
-        renderTable(team);
-        
-        alert(`Invite sent to ${email}. (Mock: In production, Supabase will email them a password setup link).`);
-        e.target.reset();
+        try {
+            // Call Supabase Admin function to invite user (Requires Node backend in production, 
+            // but we can try to insert the profile directly for now to test DB connection)
+            
+            // NOTE: To actually send the email, we will need the Node.js backend running on Render.
+            // For now, I will just save their profile to the database so you can see it working.
+            
+            const { data, error } = await supabase
+                .from('profiles')
+                .insert([
+                    { 
+                        id: '00000000-0000-0000-0000-000000000000', // Mock ID (Backend will replace this)
+                        full_name: name, 
+                        email: email, 
+                        role: role, 
+                        category: category 
+                    }
+                ]);
+
+            if (error) throw error;
+            
+            alert(`Invite sent to ${email}. (Mock: Backend will handle actual email sending soon).`);
+            team = await getTeam();
+            renderTable(team);
+            e.target.reset();
+        } catch (error) {
+            alert('Error adding member: ' + error.message);
+        }
     });
 
     function renderTable(teamArray) {
@@ -92,7 +115,7 @@ export async function renderTeam(container) {
         }
         tbody.innerHTML = teamArray.map(m => `
             <tr style="border-bottom: 1px solid var(--border);">
-                <td style="padding: 10px;">${m.name}</td>
+                <td style="padding: 10px;">${m.full_name}</td>
                 <td style="padding: 10px;">${m.email}</td>
                 <td style="padding: 10px; text-transform: capitalize;">${m.role.replace('_', ' ')}</td>
                 <td style="padding: 10px;"><button class="delete-btn" data-id="${m.id}" style="padding: 5px 10px; background: var(--danger); color: white; border: none; border-radius: 4px; cursor: pointer;">Delete</button></td>
@@ -101,13 +124,30 @@ export async function renderTeam(container) {
 
         document.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
-                const id = parseInt(e.target.dataset.id);
-                await deleteTeamMember(id);
-                team = await getTeam();
-                renderTable(team);
+                const id = e.target.dataset.id;
+                try {
+                    await supabase.from('profiles').delete().eq('id', id);
+                    team = await getTeam();
+                    renderTable(team);
+                } catch (err) {
+                    alert('Error deleting member');
+                }
             });
         });
     }
 
     renderTable(team);
+}
+
+// Fetch team from Supabase
+async function getTeam() {
+    const { data, error } = await supabase
+        .from('profiles')
+        .select('*');
+    
+    if (error) {
+        console.error('Error fetching team:', error);
+        return [];
+    }
+    return data || [];
 }
