@@ -4,9 +4,9 @@ import { renderDashboard } from './views/dashboard.js';
 import { renderPos } from './views/pos.js';
 import { renderInventory } from './views/inventory.js';
 import { renderTeam } from './views/team.js';
+import { renderSettings } from './views/settings.js';
 import { state, setUser, clearUser } from './state.js';
 import { supabase } from './config/supabaseClient.js';
-import { renderSettings } from './views/settings.js';
 
 const routes = {
     '/': renderLogin,
@@ -14,7 +14,7 @@ const routes = {
     '#dashboard': renderDashboard,
     '#pos': renderPos,
     '#inventory': renderInventory,
-    '#team': renderTeam
+    '#team': renderTeam,
     '#settings': renderSettings
 };
 
@@ -22,12 +22,10 @@ async function router() {
     const app = document.getElementById('app');
     app.innerHTML = '';
 
-    // 1. Check if user has an active Supabase session
     const { data: { session } } = await supabase.auth.getSession();
     const path = window.location.hash || '#login';
 
     if (session) {
-        // If session exists, restore the user state so name doesn't become "Guest"
         if (!state.user) {
             const { data: profile } = await supabase
                 .from('profiles')
@@ -40,7 +38,6 @@ async function router() {
             }
         }
 
-        // If logged in and trying to access login, redirect to correct dashboard
         if (path === '#login' || path === '/') {
             if (state.user.role === 'manager' || state.user.role === 'admin') {
                 window.location.hash = '#dashboard';
@@ -50,7 +47,6 @@ async function router() {
             return;
         }
     } else {
-        // If no session, force back to login
         clearUser();
         if (path !== '#login' && path !== '/') {
             window.location.hash = '#login';
@@ -58,7 +54,6 @@ async function router() {
         }
     }
 
-    // 2. Render the view
     const view = routes[path] || renderLogin;
     view(app);
 }
@@ -66,7 +61,6 @@ async function router() {
 window.addEventListener('hashchange', router);
 window.addEventListener('DOMContentLoaded', router);
 
-// Listen for Supabase auth state changes (e.g., logout)
 supabase.auth.onAuthStateChange((event, session) => {
     if (event === 'SIGNED_OUT') {
         clearUser();
