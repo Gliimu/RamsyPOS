@@ -25,12 +25,12 @@ export async function renderDashboard(container) {
                 <div id="stats-container" style="background: var(--card-bg); padding: 25px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-around; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                     <div style="text-align: center;">
                         <h3 style="color: var(--text-muted); font-size: 14px; margin-bottom: 5px;">Revenue</h3>
-                        <p id="stat-revenue" style="font-size: 32px; font-weight: bold; color: var(--success);">₦0</p>
+                        <p id="stat-revenue" style="font-size: 32px; font-weight: bold; color: #b8860b;">₦0</p>
                     </div>
                     <div style="width: 1px; height: 50px; background: var(--border);"></div>
                     <div style="text-align: center;">
                         <h3 style="color: var(--text-muted); font-size: 14px; margin-bottom: 5px;">Transactions</h3>
-                        <p id="stat-transactions" style="font-size: 32px; font-weight: bold; color: var(--primary);">0</p>
+                        <p id="stat-transactions" style="font-size: 32px; font-weight: bold; color: #b8860b;">0</p>
                     </div>
                 </div>
 
@@ -54,7 +54,7 @@ export async function renderDashboard(container) {
                 <!-- Transaction History -->
                 <div style="background: var(--card-bg); padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                     <h3 style="color: var(--text);">Transaction History</h3>
-                    <div id="recent-sales" style="margin-top: 15px;">
+                    <div id="recent-sales" style="margin-top: 15px; max-height: 500px; overflow-y: auto;">
                         <p style="color: var(--text-muted);">Loading...</p>
                     </div>
                 </div>
@@ -128,36 +128,33 @@ async function loadAnalytics(range, attendant, specificDate) {
 
     const recentSalesContainer = document.getElementById('recent-sales');
     if (filteredSales.length === 0) {
-        recentSalesContainer.innerHTML = '<p style="color: var(--text-muted);">No sales recorded for this period/attendant.</p>';
+        recentSalesContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 20px;">No sales recorded for this period/attendant.</p>';
         return;
     }
 
     recentSalesContainer.innerHTML = `
         <table style="width: 100%; border-collapse: collapse;">
-            <thead>
+            <thead style="position: sticky; top: 0; background: var(--card-bg); z-index: 10;">
                 <tr style="text-align: left; border-bottom: 2px solid var(--border);">
                     <th style="padding: 10px; color: var(--text);">Date/Time</th>
                     <th style="padding: 10px; color: var(--text);">Attendant</th>
-                    <th style="padding: 10px; color: var(--text);">Items</th>
-                    <th style="padding: 10px; color: var(--text);">Total</th>
+                    <th style="padding: 10px; color: var(--text); text-align: right;">Total</th>
                 </tr>
             </thead>
             <tbody>
-                ${filteredSales.slice(0, 50).map(sale => `
-                    <tr style="border-bottom: 1px solid var(--border); cursor: pointer;" class="view-items-btn" data-items='${JSON.stringify(sale.items)}'>
-                        <td style="padding: 10px; color: var(--text);">${new Date(sale.created_at).toLocaleString()}</td>
-                        <td style="padding: 10px; color: var(--text);">${sale.attendant_name}</td>
-                        <td style="padding: 10px; color: var(--primary); text-decoration: underline;">View ${sale.items.length} item(s)</td>
-                        <td style="padding: 10px; font-weight: bold; color: var(--text);">₦${sale.total_amount.toLocaleString()}</td>
+                ${filteredSales.map(sale => `
+                    <tr class="tx-row" style="border-bottom: 1px solid var(--border);" data-items='${JSON.stringify(sale.items)}'>
+                        <td style="padding: 12px 10px; color: var(--text);">${new Date(sale.created_at).toLocaleString()}</td>
+                        <td style="padding: 12px 10px; color: var(--text);">${sale.attendant_name}</td>
+                        <td style="padding: 12px 10px; font-weight: bold; color: var(--text); text-align: right;">₦${sale.total_amount.toLocaleString()}</td>
                     </tr>
                 `).join('')}
             </tbody>
         </table>
     `;
 
-    document.querySelectorAll('.view-items-btn').forEach(row => {
+    document.querySelectorAll('.tx-row').forEach(row => {
         row.addEventListener('click', (e) => {
-            // Ensure we don't break if JSON has single quotes (basic escape)
             let items = [];
             try {
                 items = JSON.parse(e.currentTarget.dataset.items);
@@ -167,7 +164,7 @@ async function loadAnalytics(range, attendant, specificDate) {
             
             const modalList = document.getElementById('modal-items-list');
             modalList.innerHTML = items.map(item => `
-                <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border);">
+                <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border);">
                     <span style="color: var(--text);">${item.qty}x ${item.name}</span>
                     <span style="color: var(--text); font-weight: bold;">₦${(item.price * item.qty).toLocaleString()}</span>
                 </div>
