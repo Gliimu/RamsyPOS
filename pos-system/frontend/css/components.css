@@ -363,8 +363,8 @@ button[type="button"] {
     justify-content: center;
     align-items: center;
     background-color: var(--bg);
-    background-image: url('assets/logo.png');
-    background-size: 400px; /* Adjust logo size in background */
+    background-image: url('../assets/logo.png'); /* Fixed path to find the image */
+    background-size: 400px;
     background-position: center;
     background-repeat: no-repeat;
     padding: 20px;
@@ -385,37 +385,14 @@ button[type="button"] {
     position: relative;
 }
 
-/* Dark mode adjustments for frosted glass */
 body.dark-mode .login-card {
     background: rgba(30, 41, 59, 0.85); /* Dark frosted glass */
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Login Button */
-.login-btn {
-    width: 100%;
-    padding: 15px;
-    background: #b8860b;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-top: 10px;
-    transition: background 0.2s ease, transform 0.1s ease;
-    letter-spacing: 0.5px;
-}
-
-.login-btn:hover {
-    background: #9a7408;
-}
-
-.login-btn:active {
-    transform: scale(0.98);
-}
-
-/* Keep header logo hidden on the card since it's in the background now */
+/* Show logo on the card */
 .login-header img {
-    display: none;
+    display: block;
+    height: 60px;
+    margin: 0 auto 15px auto;
 }
