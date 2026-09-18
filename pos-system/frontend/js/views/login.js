@@ -7,6 +7,7 @@ export function renderLogin(container) {
         <div class="login-container">
             <div class="login-card">
                 <div class="login-header">
+                    <img src="assets/logo.png" alt="RamsyPOS">
                     <h1>Ramsy POS</h1>
                     <p>sign in to continue</p>
                 </div>
@@ -20,11 +21,11 @@ export function renderLogin(container) {
                         <label>Password</label>
                         <input type="password" id="password" class="login-input" placeholder="Enter password" required>
                     </div>
-                    <button type="submit" class="login-btn">Sign In</button>
+                    <button type="submit" style="margin-top: 10px;">Sign In</button>
                 </form>
                 
                 <div class="login-footer">
-                    Secured by Gliimu LTD
+                    Report to manager if you forget your password or want to sign in for the first time.
                 </div>
             </div>
         </div>
