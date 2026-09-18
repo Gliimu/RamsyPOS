@@ -49,7 +49,7 @@ export async function renderInventory(container) {
                                     <th style="padding: 10px; color: var(--text);">Name</th>
                                     <th style="padding: 10px; color: var(--text);">Category</th>
                                     <th style="padding: 10px; color: var(--text);">Price</th>
-                                    <th style="padding: 10px; color: var(--text); text-align: right;">Action</th>
+                                    <th style="padding: 10px; color: var(--text);">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="inventory-table"></tbody>
