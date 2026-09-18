@@ -158,4 +158,3 @@ async function checkout() {
     } catch (error) {
         alert('Error saving sale: ' + error.message);
     }
-}
