@@ -1,5 +1,6 @@
 // dashboard.js
 import { state, clearUser } from '../state.js';
+import { getSidebar } from '../layouts/sidebar.js';
 
 export function renderDashboard(container) {
     const user = state.user || { name: 'Guest', role: 'admin' };
@@ -7,12 +8,7 @@ export function renderDashboard(container) {
     container.innerHTML = `
         <div class="app-layout">
             <aside class="sidebar">
-                <div class="sidebar-logo">
-                    <img src="assets/logo.png" alt="RamsyPOS">
-                </div>
-                <div class="nav-item active">📊 Dashboard</div>
-                <div class="nav-item" onclick="window.location.hash='#pos'">🛒 Point of Sale</div>
-                <div class="nav-item" onclick="window.location.hash='#inventory'">📦 Inventory</div>
+                ${getSidebar('dashboard', user.role)}
             </aside>
             <header class="topbar">
                 <h2>Admin Dashboard</h2>
