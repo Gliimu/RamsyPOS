@@ -36,3 +36,36 @@ body {
 .p-4 { padding: 1rem; }
 .mt-4 { margin-top: 1rem; }
 .w-full { width: 100%; }
+
+
+/* Dark Mode Variables */
+body.dark-mode {
+    --primary: #3b82f6;
+    --primary-hover: #2563eb;
+    --bg: #0f172a;
+    --card-bg: #1e293b;
+    --text: #f1f5f9;
+    --text-muted: #94a3b8;
+    --border: #334155;
+}
+
+body.dark-mode .sidebar {
+    background: #020617 !important;
+    border-right: 1px solid #1e293b !important;
+}
+
+body.dark-mode .topbar {
+    background: #1e293b !important;
+    border-bottom: 1px solid #334155 !important;
+}
+
+body.dark-mode .pos-item {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+}
+
+body.dark-mode input, body.dark-mode select {
+    background: #0f172a !important;
+    color: #f1f5f9 !important;
+    border-color: #334155 !important;
+}
