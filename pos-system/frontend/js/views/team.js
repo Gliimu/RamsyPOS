@@ -23,8 +23,9 @@ export async function renderTeam(container) {
                 <div style="display: grid; grid-template-columns: 300px 1fr; gap: 20px;">
                     <div style="background: white; padding: 20px; border-radius: 8px; height: fit-content;">
                         <h3 style="margin-bottom: 20px;">Add Team Member</h3>
-                        <form id="add-member-form" style="display: flex; flex-direction: column; gap: 15px;">
+                                               <form id="add-member-form" style="display: flex; flex-direction: column; gap: 15px;">
                             <input type="text" id="member-name" placeholder="Full Name" required style="padding: 10px; border: 1px solid var(--border); border-radius: 6px;">
+                            <input type="email" id="member-email" placeholder="Staff Email Address" required style="padding: 10px; border: 1px solid var(--border); border-radius: 6px;">
                             <select id="member-role" style="padding: 10px; border: 1px solid var(--border); border-radius: 6px;">
                                 <option value="pos_attendant">POS Attendant</option>
                                 <option value="admin">Admin</option>
@@ -36,7 +37,7 @@ export async function renderTeam(container) {
                                 <option value="saloon">Saloon</option>
                                 <option value="all">All Categories</option>
                             </select>
-                            <button type="submit" style="padding: 10px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Add Member</button>
+                            <button type="submit" style="padding: 10px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Add Member & Send Invite</button>
                         </form>
                     </div>
                     <div style="background: white; padding: 20px; border-radius: 8px;">
