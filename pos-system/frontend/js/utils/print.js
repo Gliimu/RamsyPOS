@@ -13,33 +13,63 @@ export function printReceipt(cart, total, attendantName) {
         `;
     });
 
-    const receiptHTML = `
+    const headerHTML = `
         <div class="receipt-header">
-            <h2>RamsyPOS</h2>
-            <p>123 Maitama 2, Berger Qwarry Road, FCT-Abuja</p>
-            <p>Tel: 080123456789</p>
-            <p>${date}</p>
+            <img src="assets/logo.png" alt="RamsyPOS">
+            <h2 style="margin: 0; font-size: 18px;">Ramsy Paradise</h2>
+            <p style="margin: 2px 0;">Hotel & Suites</p>
+            <p style="margin: 2px 0;">123 Business Street, Lagos</p>
+            <p style="margin: 2px 0;">Tel: 080XXXXXXX</p>
+            <p style="margin: 5px 0 0 0;">${date}</p>
         </div>
+    `;
+
+    const itemsTable = `
         <table class="receipt-items">
             ${itemsHTML}
         </table>
+    `;
+
+    const totalDiv = `
         <div class="receipt-total">
             <span>TOTAL:</span>
             <span>₦${total.toLocaleString()}</span>
         </div>
-        <div class="receipt-footer">
-            <p>Attended by: ${attendantName}</p>
-            <p>Thank you for your patronage!</p>
+    `;
+
+    // 1. Customer Copy
+    const customerCopy = `
+        <div class="receipt-copy">
+            ${headerHTML}
+            ${itemsTable}
+            ${totalDiv}
+            <div class="receipt-footer">
+                <p>Attended by: ${attendantName}</p>
+                <p style="margin-top: 10px; font-weight: bold;">Thank you for patronizing Ramsy Paradise Hotel & Suites!</p>
+            </div>
         </div>
     `;
 
-    // Inject into hidden print area
+    // 2. Attendant Copy (No Thank You message)
+    const attendantCopy = `
+        <div class="receipt-copy">
+            ${headerHTML}
+            ${itemsTable}
+            ${totalDiv}
+            <div class="receipt-footer">
+                <p>Attended by: ${attendantName}</p>
+                <p style="margin-top: 10px; font-weight: bold;">*** ATTENDANT COPY ***</p>
+            </div>
+        </div>
+    `;
+
+    // Combine and inject
     const printArea = document.getElementById('print-area');
-    printArea.innerHTML = receiptHTML;
+    printArea.innerHTML = customerCopy + attendantCopy;
     
     // Trigger print
     window.print();
     
-    // Clear print area after printing
+    // Clear print area
     printArea.innerHTML = '';
 }
