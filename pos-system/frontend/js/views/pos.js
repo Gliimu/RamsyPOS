@@ -1,8 +1,13 @@
 // pos.js
 import { state, clearUser } from '../state.js';
+import { getItems } from '../api.js';
 
-export function renderPos(container) {
-    const user = state.user || { name: 'Guest', role: 'pos attendant' };
+let cart = [];
+let currentCategory = 'gym'; // Default tab
+
+export async function renderPos(container) {
+    const user = state.user || { name: 'Guest', role: 'pos_attendant' };
+    const items = await getItems(); // Fetch items
     
     container.innerHTML = `
         <div class="app-layout">
@@ -22,21 +27,133 @@ export function renderPos(container) {
             </header>
             <main class="main-content">
                 <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; height: 100%;">
-                    <div style="background: white; padding: 20px; border-radius: 8px;">
-                        <h3>Items for Sale</h3>
-                        <p>Grid of items will go here...</p>
+                    
+                    <!-- Left Side: Items -->
+                    <div style="background: white; padding: 20px; border-radius: 8px; overflow-y: auto;">
+                        <div class="pos-tabs">
+                            <button class="tab-btn active" data-cat="gym">Gym</button>
+                            <button class="tab-btn" data-cat="bar">Bar</button>
+                            <button class="tab-btn" data-cat="restaurant">Restaurant</button>
+                        </div>
+                        <div id="pos-grid" class="pos-grid"></div>
                     </div>
-                    <div style="background: white; padding: 20px; border-radius: 8px;">
-                        <h3>Current Cart</h3>
-                        <p>Cart items and checkout will go here...</p>
+
+                    <!-- Right Side: Cart -->
+                    <div style="background: white; padding: 20px; border-radius: 8px; display: flex; flex-direction: column;">
+                        <h3 style="margin-bottom: 20px;">Current Order</h3>
+                        <div id="cart-container" class="cart-list"></div>
+                        
+                        <div class="cart-total">
+                            <span>Total:</span>
+                            <span>₦<span id="cart-total">0</span></span>
+                        </div>
+                        <button id="checkout-btn" class="checkout-btn">Checkout & Print</button>
                     </div>
+                    
                 </div>
             </main>
         </div>
     `;
 
+    // Event Listeners
     document.getElementById('logout-btn').addEventListener('click', () => {
         clearUser();
         window.location.hash = '#login';
     });
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            currentCategory = e.target.dataset.cat;
+            renderItems(items);
+        });
+    });
+
+    document.getElementById('checkout-btn').addEventListener('click', checkout);
+
+    // Initial Render
+    renderItems(items);
+    renderCart();
+}
+
+function renderItems(items) {
+    const grid = document.getElementById('pos-grid');
+    const filteredItems = items.filter(item => item.category === currentCategory);
+    
+    grid.innerHTML = filteredItems.map(item => `
+        <div class="pos-item" onclick="window.addToCart(${item.id})">
+            <div class="item-name">${item.name}</div>
+            <div class="item-price">₦${item.price.toLocaleString()}</div>
+        </div>
+    `).join('');
+}
+
+// Make addToCart global so inline onclick can access it
+window.addToCart = (itemId) => {
+    // Since we don't have the items array globally here, we re-fetch or we can structure better later. 
+    // For mock purposes, let's just simulate finding it.
+    getItems().then(items => {
+        const item = items.find(i => i.id === itemId);
+        if (!item) return;
+
+        const existingItem = cart.find(ci => ci.id === itemId);
+        if (existingItem) {
+            existingItem.qty += 1;
+        } else {
+            cart.push({ ...item, qty: 1 });
+        }
+        renderCart();
+    });
+}
+
+function renderCart() {
+    const cartContainer = document.getElementById('cart-container');
+    const totalElement = document.getElementById('cart-total');
+    
+    if (cart.length === 0) {
+        cartContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center; margin-top: 20px;">No items in cart</p>';
+        totalElement.innerText = '0';
+        return;
+    }
+
+    cartContainer.innerHTML = cart.map(item => `
+        <div class="cart-item">
+            <div>
+                <div style="font-weight: 500;">${item.name}</div>
+                <div style="font-size: 12px; color: var(--text-muted);">₦${item.price.toLocaleString()} each</div>
+            </div>
+            <div class="qty-controls">
+                <button class="qty-btn" onclick="window.updateQty(${item.id}, -1)">-</button>
+                <span>${item.qty}</span>
+                <button class="qty-btn" onclick="window.updateQty(${item.id}, 1)">+</button>
+            </div>
+            <div style="font-weight: bold; width: 80px; text-align: right;">₦${(item.price * item.qty).toLocaleString()}</div>
+        </div>
+    `).join('');
+
+    const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    totalElement.innerText = total.toLocaleString();
+}
+
+window.updateQty = (itemId, change) => {
+    const item = cart.find(ci => ci.id === itemId);
+    if (!item) return;
+
+    item.qty += change;
+    if (item.qty <= 0) {
+        cart = cart.filter(ci => ci.id !== itemId);
+    }
+    renderCart();
+}
+
+function checkout() {
+    if (cart.length === 0) {
+        alert('Cart is empty!');
+        return;
+    }
+    
+    alert('Checkout successful! Receipt sent to printer.');
+    cart = [];
+    renderCart();
 }
