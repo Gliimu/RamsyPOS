@@ -1,7 +1,7 @@
 // app.js
-console.log("RamsyPOS Initializing...");
-
-// Import the router so it actually runs!
 import './router.js';
 
-// We will add authentication checks here later.
+// Apply dark mode on initial load
+if (localStorage.getItem('darkMode') === 'true') {
+    document.body.classList.add('dark-mode');
+}
