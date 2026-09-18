@@ -248,3 +248,25 @@ body.dark-mode .pos-item:hover {
     background: #6b7280;
     cursor: not-allowed;
 }
+
+/* Global Action Buttons - Brownish Gold */
+button[type="submit"],
+.checkout-btn {
+    background-color: #b8860b !important; /* Brownish Gold */
+    color: white !important;
+    border: none !important;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+}
+
+button[type="submit"]:hover,
+.checkout-btn:hover {
+    background-color: #9a7408 !important; /* Slightly darker gold for hover */
+}
+
+/* Keep Cancel buttons gray so they don't look like primary actions */
+button[type="button"] {
+    background-color: #6b7280 !important;
+    color: white !important;
+}
