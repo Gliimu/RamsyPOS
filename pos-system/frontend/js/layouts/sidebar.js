@@ -14,5 +14,7 @@ export function getSidebar(activePage, userRole) {
         ${userRole === 'manager' ? `
             <div class="nav-item ${activePage === 'team' ? 'active' : ''}" onclick="window.location.hash='#team'">👥 Team Management</div>
         ` : ''}
+
+        <div class="nav-item ${activePage === 'settings' ? 'active' : ''}" onclick="window.location.hash='#settings'" style="margin-top: auto;">⚙️ Settings</div>
     `;
 }
