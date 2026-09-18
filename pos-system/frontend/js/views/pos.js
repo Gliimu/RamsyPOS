@@ -1,23 +1,20 @@
 // pos.js
 import { state, clearUser } from '../state.js';
 import { getItems } from '../api.js';
+import { getSidebar } from '../layouts/sidebar.js';
 import { printReceipt } from '../utils/print.js';
 
 let cart = [];
-let currentCategory = 'gym'; // Default tab
+let currentCategory = 'gym';
 
 export async function renderPos(container) {
     const user = state.user || { name: 'Guest', role: 'pos_attendant' };
-    const items = await getItems(); // Fetch items
+    const items = await getItems();
     
     container.innerHTML = `
         <div class="app-layout">
             <aside class="sidebar">
-                <div class="sidebar-logo">
-                    <img src="assets/logo.png" alt="RamsyPOS">
-                </div>
-                <div class="nav-item" onclick="window.location.hash='#dashboard'">📊 Dashboard</div>
-                <div class="nav-item active">🛒 Point of Sale</div>
+                ${getSidebar('pos', user.role)}
             </aside>
             <header class="topbar">
                 <h2>Point of Sale</h2>
@@ -28,35 +25,29 @@ export async function renderPos(container) {
             </header>
             <main class="main-content">
                 <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; height: 100%;">
-                    
-                    <!-- Left Side: Items -->
                     <div style="background: white; padding: 20px; border-radius: 8px; overflow-y: auto;">
                         <div class="pos-tabs">
                             <button class="tab-btn active" data-cat="gym">Gym</button>
                             <button class="tab-btn" data-cat="bar">Bar</button>
                             <button class="tab-btn" data-cat="restaurant">Restaurant</button>
+                            <button class="tab-btn" data-cat="saloon">Saloon</button>
                         </div>
                         <div id="pos-grid" class="pos-grid"></div>
                     </div>
-
-                    <!-- Right Side: Cart -->
                     <div style="background: white; padding: 20px; border-radius: 8px; display: flex; flex-direction: column;">
                         <h3 style="margin-bottom: 20px;">Current Order</h3>
                         <div id="cart-container" class="cart-list"></div>
-                        
                         <div class="cart-total">
                             <span>Total:</span>
                             <span>₦<span id="cart-total">0</span></span>
                         </div>
                         <button id="checkout-btn" class="checkout-btn">Checkout & Print</button>
                     </div>
-                    
                 </div>
             </main>
         </div>
     `;
 
-    // Event Listeners
     document.getElementById('logout-btn').addEventListener('click', () => {
         clearUser();
         window.location.hash = '#login';
@@ -72,8 +63,6 @@ export async function renderPos(container) {
     });
 
     document.getElementById('checkout-btn').addEventListener('click', checkout);
-
-    // Initial Render
     renderItems(items);
     renderCart();
 }
@@ -95,12 +84,10 @@ function renderItems(items) {
     `).join('');
 }
 
-// Make addToCart global so inline onclick can access it
 window.addToCart = (itemId) => {
     getItems().then(items => {
         const item = items.find(i => i.id === itemId);
         if (!item) return;
-
         const existingItem = cart.find(ci => ci.id === itemId);
         if (existingItem) {
             existingItem.qty += 1;
@@ -143,7 +130,6 @@ function renderCart() {
 window.updateQty = (itemId, change) => {
     const item = cart.find(ci => ci.id === itemId);
     if (!item) return;
-
     item.qty += change;
     if (item.qty <= 0) {
         cart = cart.filter(ci => ci.id !== itemId);
@@ -156,13 +142,8 @@ function checkout() {
         alert('Cart is empty!');
         return;
     }
-    
     const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-    
-    // Call the print function
     printReceipt(cart, total, state.user.name);
-    
-    // Clear cart after checkout
     cart = [];
     renderCart();
 }
