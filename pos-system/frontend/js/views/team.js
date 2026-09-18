@@ -3,7 +3,6 @@ import { state, clearUser } from '../state.js';
 import { getSidebar } from '../layouts/sidebar.js';
 import { supabase } from '../config/supabaseClient.js';
 
-// ⚠️ PASTE YOUR RENDER BACKEND URL HERE
 const BACKEND_URL = 'https://ramsypos-backend.onrender.com'; 
 
 export async function renderTeam(container) {
@@ -30,7 +29,7 @@ export async function renderTeam(container) {
                         <h3 style="margin-bottom: 20px;">Add Team Member</h3>
                         <form id="add-member-form" style="display: flex; flex-direction: column; gap: 15px;">
                             <input type="text" id="member-name" placeholder="Full Name" required style="padding: 10px; border: 1px solid var(--border); border-radius: 6px;">
-                            <input type="email" id="member-email" placeholder="Staff Email Address" required style="padding: 10px; border: 1px solid var(--border); border-radius: 6px;">
+                            <input type="text" id="member-username" placeholder="Username (e.g., tunde)" required style="padding: 10px; border: 1px solid var(--border); border-radius: 6px;">
                             <select id="member-role" style="padding: 10px; border: 1px solid var(--border); border-radius: 6px;">
                                 <option value="pos_attendant">POS Attendant</option>
                                 <option value="admin">Admin</option>
@@ -43,7 +42,7 @@ export async function renderTeam(container) {
                                 <option value="saloon">Saloon</option>
                                 <option value="all">All Categories</option>
                             </select>
-                            <button type="submit" style="padding: 10px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Add Member & Send Invite</button>
+                            <button type="submit" style="padding: 10px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Add Member</button>
                         </form>
                     </div>
 
@@ -54,9 +53,8 @@ export async function renderTeam(container) {
                             <thead>
                                 <tr style="text-align: left; border-bottom: 2px solid var(--border);">
                                     <th style="padding: 10px;">Name</th>
-                                    <th style="padding: 10px;">Email</th>
+                                    <th style="padding: 10px;">Username</th>
                                     <th style="padding: 10px;">Role</th>
-                                    <th style="padding: 10px;">Category</th>
                                     <th style="padding: 10px;">Actions</th>
                                 </tr>
                             </thead>
@@ -67,34 +65,6 @@ export async function renderTeam(container) {
                 </div>
             </main>
         </div>
-
-        <!-- Hidden Edit Modal -->
-        <div id="edit-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:50; justify-content:center; align-items:center;">
-            <div style="background:white; padding:30px; border-radius:12px; width:400px; box-shadow: 0 10px 15px rgba(0,0,0,0.1);">
-                <h3 style="margin-bottom:20px; color:var(--primary);">Edit Team Member</h3>
-                <form id="edit-member-form" style="display: flex; flex-direction: column; gap: 15px;">
-                    <input type="hidden" id="edit-id">
-                    <input type="text" id="edit-name" placeholder="Full Name" required style="padding: 10px; border: 1px solid var(--border); border-radius: 6px;">
-                    <input type="email" id="edit-email" placeholder="Email" disabled style="padding: 10px; border: 1px solid var(--border); border-radius: 6px; background:#f3f4f6;">
-                    <select id="edit-role" style="padding: 10px; border: 1px solid var(--border); border-radius: 6px;">
-                        <option value="pos_attendant">POS Attendant</option>
-                        <option value="admin">Admin</option>
-                        <option value="manager">Manager</option>
-                    </select>
-                    <select id="edit-category" style="padding: 10px; border: 1px solid var(--border); border-radius: 6px;">
-                        <option value="gym">Gym</option>
-                        <option value="bar">Bar</option>
-                        <option value="restaurant">Restaurant</option>
-                        <option value="saloon">Saloon</option>
-                        <option value="all">All Categories</option>
-                    </select>
-                    <div style="display:flex; gap:10px; margin-top:10px;">
-                        <button type="submit" style="flex:1; padding: 10px; background: var(--success); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Save Changes</button>
-                        <button type="button" id="cancel-edit" style="flex:1; padding: 10px; background: #6b7280; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Cancel</button>
-                    </div>
-                </form>
-            </div>
-        </div>
     `;
 
     document.getElementById('logout-btn').addEventListener('click', async () => {
@@ -103,27 +73,22 @@ export async function renderTeam(container) {
         window.location.hash = '#login';
     });
 
-    document.getElementById('cancel-edit').addEventListener('click', () => {
-        document.getElementById('edit-modal').style.display = 'none';
-    });
-
     document.getElementById('add-member-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const name = document.getElementById('member-name').value;
-        const email = document.getElementById('member-email').value;
+        const username = document.getElementById('member-username').value;
         const role = document.getElementById('member-role').value;
         const category = document.getElementById('member-category').value;
         
         try {
-            // This calls your live Node.js backend on Render!
-            const response = await fetch(`${BACKEND_URL}/api/invite`, {
+            const response = await fetch(`${BACKEND_URL}/api/create-user`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, full_name: name, role, category })
+                body: JSON.stringify({ username, full_name: name, role, category })
             });
 
             const result = await response.json();
-            if (!response.ok) throw new Error(result.error || 'Failed to send invite');
+            if (!response.ok) throw new Error(result.error || 'Failed to create user');
             
             alert(result.message);
             team = await getTeam();
@@ -134,44 +99,19 @@ export async function renderTeam(container) {
         }
     });
 
-    document.getElementById('edit-member-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const id = document.getElementById('edit-id').value;
-        const name = document.getElementById('edit-name').value;
-        const role = document.getElementById('edit-role').value;
-        const category = document.getElementById('edit-category').value;
-
-        try {
-            const { error } = await supabase
-                .from('profiles')
-                .update({ full_name: name, role: role, category: category })
-                .eq('id', id);
-
-            if (error) throw error;
-
-            alert('User updated successfully!');
-            document.getElementById('edit-modal').style.display = 'none';
-            team = await getTeam();
-            renderTable(team);
-        } catch (error) {
-            alert('Error updating user: ' + error.message);
-        }
-    });
-
     function renderTable(teamArray) {
         const tbody = document.getElementById('team-table');
         if (teamArray.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--text-muted);">No team members added yet</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--text-muted);">No team members added yet</td></tr>';
             return;
         }
         tbody.innerHTML = teamArray.map(m => `
             <tr style="border-bottom: 1px solid var(--border);">
                 <td style="padding: 10px;">${m.full_name || 'N/A'}</td>
-                <td style="padding: 10px;">${m.email}</td>
+                <td style="padding: 10px;">${m.email.replace('@ramsypos.app', '')}</td>
                 <td style="padding: 10px; text-transform: capitalize;">${m.role.replace('_', ' ')}</td>
-                <td style="padding: 10px; text-transform: capitalize;">${m.category}</td>
                 <td style="padding: 10px; display: flex; gap: 5px;">
-                    <button class="edit-btn" data-id="${m.id}" style="padding: 5px 10px; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer;">Edit</button>
+                    <button class="reset-btn" data-id="${m.id}" style="padding: 5px 10px; background: #f59e0b; color: white; border: none; border-radius: 4px; cursor: pointer;">Reset Pass</button>
                     <button class="delete-btn" data-id="${m.id}" style="padding: 5px 10px; background: var(--danger); color: white; border: none; border-radius: 4px; cursor: pointer;">Delete</button>
                 </td>
             </tr>
@@ -180,7 +120,7 @@ export async function renderTeam(container) {
         document.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 const id = e.target.dataset.id;
-                if(confirm('Are you sure you want to delete this user? This will remove them from the database.')) {
+                if(confirm('Are you sure you want to delete this user?')) {
                     try {
                         await supabase.from('profiles').delete().eq('id', id);
                         team = await getTeam();
@@ -192,18 +132,23 @@ export async function renderTeam(container) {
             });
         });
 
-        document.querySelectorAll('.edit-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.reset-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
                 const id = e.target.dataset.id;
-                const member = team.find(m => m.id === id);
-                
-                document.getElementById('edit-id').value = member.id;
-                document.getElementById('edit-name').value = member.full_name || '';
-                document.getElementById('edit-email').value = member.email || '';
-                document.getElementById('edit-role').value = member.role;
-                document.getElementById('edit-category').value = member.category;
-                
-                document.getElementById('edit-modal').style.display = 'flex';
+                if(confirm('Reset this user\'s password to Ramsy4u&me?')) {
+                    try {
+                        const response = await fetch(`${BACKEND_URL}/api/reset-password`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ user_id: id })
+                        });
+                        const result = await response.json();
+                        if (!response.ok) throw new Error(result.error);
+                        alert(result.message);
+                    } catch (err) {
+                        alert('Error resetting password: ' + err.message);
+                    }
+                }
             });
         });
     }
@@ -211,7 +156,6 @@ export async function renderTeam(container) {
     renderTable(team);
 }
 
-// Fetch team from Supabase
 async function getTeam() {
     const { data, error } = await supabase
         .from('profiles')
