@@ -1,5 +1,7 @@
 // app.js
 console.log("RamsyPOS Initializing...");
 
-// The router handles the rest automatically via DOMContentLoaded
+// Import the router so it actually runs!
+import './router.js';
+
 // We will add authentication checks here later.
