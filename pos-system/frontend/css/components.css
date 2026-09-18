@@ -363,12 +363,13 @@ button[type="button"] {
     justify-content: center;
     align-items: center;
     background-color: var(--bg);
-    background-image: url('../assets/logo.png'); /* Fixed path to find the image */
-    background-size: 400px;
-    background-position: center;
+    background-image: url('../assets/logo.png');
+    background-size: 600px; /* Made the logo significantly larger */
+    background-position: 90% center; /* Pushed to the right side, vertically centered */
     background-repeat: no-repeat;
     padding: 20px;
     position: relative;
+    overflow: hidden; /* Prevents horizontal scrolling if the logo bleeds off edge */
 }
 
 .login-card {
@@ -385,6 +386,7 @@ button[type="button"] {
     position: relative;
 }
 
+/* Dark mode adjustments for frosted glass */
 body.dark-mode .login-card {
     background: rgba(30, 41, 59, 0.85); /* Dark frosted glass */
     border: 1px solid rgba(255, 255, 255, 0.1);
