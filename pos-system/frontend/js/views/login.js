@@ -4,29 +4,29 @@ import { supabase } from '../config/supabaseClient.js';
 
 export function renderLogin(container) {
     container.innerHTML = `
-        <div style="width: 100%; display: flex; justify-content: center; align-items: center; height: 100vh; background: var(--bg);">
-            <div style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 400px;">
-                <div style="text-align: center; margin-bottom: 30px;">
-                    <img src="assets/logo.png" alt="RamsyPOS" style="width: 80px; margin-bottom: 10px;">
-                    <h1 style="color: var(--primary);">RamsyPOS</h1>
-                    <p style="color: var(--text-muted);">Sign in to your account</p>
+        <div class="login-container">
+            <div class="login-card">
+                <div class="login-header">
+                    <img src="assets/logo.png" alt="RamsyPOS">
+                    <h1>Welcome back</h1>
+                    <p>Please sign in to your account to continue</p>
                 </div>
                 
-                <form id="login-form" style="display: flex; flex-direction: column; gap: 15px;">
-                    <div>
-                        <label style="font-size: 14px; color: var(--text-muted); margin-bottom: 5px; display: block;">Username</label>
-                        <input type="text" id="username" placeholder="Enter your username" required style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px;">
+                <form id="login-form" class="login-form">
+                    <div class="input-group">
+                        <label>Username</label>
+                        <input type="text" id="username" class="login-input" placeholder="Enter your username" required>
                     </div>
-                    <div>
-                        <label style="font-size: 14px; color: var(--text-muted); margin-bottom: 5px; display: block;">Password</label>
-                        <input type="password" id="password" placeholder="Enter password" required style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px;">
+                    <div class="input-group">
+                        <label>Password</label>
+                        <input type="password" id="password" class="login-input" placeholder="Enter password" required>
                     </div>
-                    <button type="submit" style="padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 10px;">Login</button>
+                    <button type="submit" style="margin-top: 10px;">Sign In</button>
                 </form>
                 
-                <p style="text-align: center; color: var(--text-muted); font-size: 12px; margin-top: 20px;">
-                    Default password is Ramsy4u&me
-                </p>
+                <div class="login-footer">
+                    Secure login by Ramsy Paradise Hotel & Suites
+                </div>
             </div>
         </div>
     `;
@@ -36,7 +36,6 @@ export function renderLogin(container) {
         const rawUsername = document.getElementById('username').value.trim().toLowerCase().replace(/\s+/g, '');
         const password = document.getElementById('password').value;
         
-        // Convert username to fake email for Supabase Auth
         const fakeEmail = `${rawUsername}@ramsypos.app`;
 
         try {
