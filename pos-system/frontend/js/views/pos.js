@@ -6,7 +6,7 @@ import { printReceipt } from '../utils/print.js';
 import { supabase } from '../config/supabaseClient.js';
 
 let cart = [];
-let currentCategory = 'all'; // Default to all
+let currentCategory = 'all'; 
 let allItems = [];
 let searchQuery = '';
 
@@ -53,12 +53,20 @@ export async function renderPos(container) {
 
                     <div style="background: var(--card-bg); padding: 20px; border-radius: 8px; display: flex; flex-direction: column;">
                         <h3 style="margin-bottom: 20px; color: var(--text);">Current Order</h3>
-                        <div id="cart-container" class="cart-list"></div>
+                        <div id="cart-container" class="cart-list" style="flex: 1; overflow-y: auto;"></div>
+                        
                         <div class="cart-total">
                             <span style="color: var(--text);">Total:</span>
                             <span style="color: var(--text);">₦<span id="cart-total">0</span></span>
                         </div>
-                        <button id="checkout-btn" class="checkout-btn">Checkout & Print</button>
+
+                        <!-- Mode of Payment -->
+                        <select id="mop-select" class="mop-select">
+                            <option value="Cash">Cash (Withdrawal)</option>
+                            <option value="Transfer">Transfer</option>
+                        </select>
+
+                        <button id="checkout-btn" class="checkout-btn">Check out</button>
                     </div>
                 </div>
             </main>
@@ -179,15 +187,26 @@ async function checkout() {
         alert('Cart is empty!');
         return;
     }
-    
+
+    const checkoutBtn = document.getElementById('checkout-btn');
+    const mop = document.getElementById('mop-select').value;
+
+    // Disable button immediately to prevent double-clicking
+    checkoutBtn.disabled = true;
+    checkoutBtn.innerText = 'Processing...';
+
     const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
     
     try {
         await saveSale(cart, total, state.user.name);
-        printReceipt(cart, total, state.user.name);
+        printReceipt(cart, total, state.user.name, mop);
         cart = [];
         renderCart();
     } catch (error) {
         alert('Error saving sale: ' + error.message);
+    } finally {
+        // Re-enable button after process finishes
+        checkoutBtn.disabled = false;
+        checkoutBtn.innerText = 'Check out';
     }
 }
