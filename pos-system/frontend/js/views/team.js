@@ -65,12 +65,43 @@ export async function renderTeam(container) {
                 </div>
             </main>
         </div>
+
+        <!-- Hidden Edit Modal -->
+        <div id="edit-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:50; justify-content:center; align-items:center;">
+            <div style="background:white; padding:30px; border-radius:12px; width:400px; box-shadow: 0 10px 15px rgba(0,0,0,0.1);">
+                <h3 style="margin-bottom:20px; color:var(--primary);">Edit Team Member</h3>
+                <form id="edit-member-form" style="display: flex; flex-direction: column; gap: 15px;">
+                    <input type="hidden" id="edit-id">
+                    <input type="text" id="edit-name" placeholder="Full Name" required style="padding: 10px; border: 1px solid var(--border); border-radius: 6px;">
+                    <select id="edit-role" style="padding: 10px; border: 1px solid var(--border); border-radius: 6px;">
+                        <option value="pos_attendant">POS Attendant</option>
+                        <option value="admin">Admin</option>
+                        <option value="manager">Manager</option>
+                    </select>
+                    <select id="edit-category" style="padding: 10px; border: 1px solid var(--border); border-radius: 6px;">
+                        <option value="gym">Gym</option>
+                        <option value="bar">Bar</option>
+                        <option value="restaurant">Restaurant</option>
+                        <option value="saloon">Saloon</option>
+                        <option value="all">All Categories</option>
+                    </select>
+                    <div style="display:flex; gap:10px; margin-top:10px;">
+                        <button type="submit" style="flex:1; padding: 10px; background: var(--success); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Save Changes</button>
+                        <button type="button" id="cancel-edit" style="flex:1; padding: 10px; background: #6b7280; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     `;
 
     document.getElementById('logout-btn').addEventListener('click', async () => {
         await supabase.auth.signOut();
         clearUser();
         window.location.hash = '#login';
+    });
+
+    document.getElementById('cancel-edit').addEventListener('click', () => {
+        document.getElementById('edit-modal').style.display = 'none';
     });
 
     document.getElementById('add-member-form').addEventListener('submit', async (e) => {
@@ -99,6 +130,30 @@ export async function renderTeam(container) {
         }
     });
 
+    document.getElementById('edit-member-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('edit-id').value;
+        const name = document.getElementById('edit-name').value;
+        const role = document.getElementById('edit-role').value;
+        const category = document.getElementById('edit-category').value;
+
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .update({ full_name: name, role: role, category: category })
+                .eq('id', id);
+
+            if (error) throw error;
+
+            alert('User updated successfully!');
+            document.getElementById('edit-modal').style.display = 'none';
+            team = await getTeam();
+            renderTable(team);
+        } catch (error) {
+            alert('Error updating user: ' + error.message);
+        }
+    });
+
     function renderTable(teamArray) {
         const tbody = document.getElementById('team-table');
         if (teamArray.length === 0) {
@@ -110,7 +165,8 @@ export async function renderTeam(container) {
                 <td style="padding: 10px;">${m.full_name || 'N/A'}</td>
                 <td style="padding: 10px;">${m.email.replace('@ramsypos.app', '')}</td>
                 <td style="padding: 10px; text-transform: capitalize;">${m.role.replace('_', ' ')}</td>
-                <td style="padding: 10px; display: flex; gap: 5px;">
+                <td style="padding: 10px; display: flex; gap: 5px; flex-wrap: wrap;">
+                    <button class="edit-btn" data-id="${m.id}" style="padding: 5px 10px; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer;">Edit</button>
                     <button class="reset-btn" data-id="${m.id}" style="padding: 5px 10px; background: #f59e0b; color: white; border: none; border-radius: 4px; cursor: pointer;">Reset Pass</button>
                     <button class="delete-btn" data-id="${m.id}" style="padding: 5px 10px; background: var(--danger); color: white; border: none; border-radius: 4px; cursor: pointer;">Delete</button>
                 </td>
@@ -149,6 +205,20 @@ export async function renderTeam(container) {
                         alert('Error resetting password: ' + err.message);
                     }
                 }
+            });
+        });
+
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = e.target.dataset.id;
+                const member = team.find(m => m.id === id);
+                
+                document.getElementById('edit-id').value = member.id;
+                document.getElementById('edit-name').value = member.full_name || '';
+                document.getElementById('edit-role').value = member.role;
+                document.getElementById('edit-category').value = member.category;
+                
+                document.getElementById('edit-modal').style.display = 'flex';
             });
         });
     }
