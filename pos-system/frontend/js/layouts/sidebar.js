@@ -5,7 +5,7 @@ export function getSidebar(activePage, userRole) {
     return `
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 2rem; padding-left: 5px;">
             <img src="assets/logo.png" alt="RamsyPOS" style="height: 40px;">
-            <span style="font-family: 'Times New Roman', serif; font-style: italic; font-weight: bold; font-size: 24px; color: var(--text);">P.O.S.</span>
+            <span style="font-family: 'Arial', sans-serif; font-weight: bold; font-size: 24px; color: #b8860b;">P.O.S.</span>
         </div>
         
         <div class="nav-item ${activePage === 'dashboard' ? 'active' : ''}" onclick="window.location.hash='#dashboard'">
