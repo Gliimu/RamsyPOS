@@ -5,6 +5,9 @@ import { supabase } from '../config/supabaseClient.js';
 export function renderLogin(container) {
     container.innerHTML = `
         <div class="login-container">
+            <!-- Background Image -->
+            <img src="assets/background.png" class="login-bg-img" alt="background">
+            
             <div class="login-card">
                 <div class="login-header">
                     <img src="assets/logo.png" alt="RamsyPOS">
