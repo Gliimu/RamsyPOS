@@ -1,6 +1,6 @@
 // pos.js
 import { state, clearUser } from '../state.js';
-import { getItems } from '../api.js';
+import { getItems, saveSale } from '../api.js'; // <-- Added saveSale
 import { getSidebar } from '../layouts/sidebar.js';
 import { printReceipt } from '../utils/print.js';
 
@@ -137,13 +137,25 @@ window.updateQty = (itemId, change) => {
     renderCart();
 }
 
-function checkout() {
+async function checkout() {
     if (cart.length === 0) {
         alert('Cart is empty!');
         return;
     }
+    
     const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-    printReceipt(cart, total, state.user.name);
-    cart = [];
-    renderCart();
+    
+    try {
+        // 1. Save the sale to Supabase Database
+        await saveSale(cart, total, state.user.name);
+        
+        // 2. Print the receipt
+        printReceipt(cart, total, state.user.name);
+        
+        // 3. Clear the cart
+        cart = [];
+        renderCart();
+    } catch (error) {
+        alert('Error saving sale: ' + error.message);
+    }
 }
