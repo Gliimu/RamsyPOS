@@ -364,37 +364,10 @@ button[type="button"] {
     align-items: center;
     background-color: var(--bg);
     background-image: url('../assets/logo.png');
-    background-size: 600px; /* Made the logo significantly larger */
-    background-position: 90% center; /* Pushed to the right side, vertically centered */
+    background-size: 600px; 
+    background-position: 10% center; /* Pushed to the left side */
     background-repeat: no-repeat;
     padding: 20px;
     position: relative;
-    overflow: hidden; /* Prevents horizontal scrolling if the logo bleeds off edge */
-}
-
-.login-card {
-    background: rgba(255, 255, 255, 0.85); /* Frosted glass effect */
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    padding: 50px 40px;
-    border-radius: 16px;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-    width: 100%;
-    max-width: 420px;
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    z-index: 2;
-    position: relative;
-}
-
-/* Dark mode adjustments for frosted glass */
-body.dark-mode .login-card {
-    background: rgba(30, 41, 59, 0.85); /* Dark frosted glass */
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Show logo on the card */
-.login-header img {
-    display: block;
-    height: 60px;
-    margin: 0 auto 15px auto;
+    overflow: hidden; 
 }
