@@ -7,9 +7,8 @@ export function renderLogin(container) {
         <div class="login-container">
             <div class="login-card">
                 <div class="login-header">
-                    <img src="assets/logo.png" alt="RamsyPOS">
-                    <h1>Welcome back</h1>
-                    <p>Please sign in to your account to continue</p>
+                    <h1>Ramsy POS</h1>
+                    <p>sign in to continue</p>
                 </div>
                 
                 <form id="login-form" class="login-form">
@@ -21,11 +20,11 @@ export function renderLogin(container) {
                         <label>Password</label>
                         <input type="password" id="password" class="login-input" placeholder="Enter password" required>
                     </div>
-                    <button type="submit" style="margin-top: 10px;">Sign In</button>
+                    <button type="submit" class="login-btn">Sign In</button>
                 </form>
                 
                 <div class="login-footer">
-                    Secure login by Ramsy Paradise Hotel & Suites
+                    Secured by Gliimu LTD
                 </div>
             </div>
         </div>
