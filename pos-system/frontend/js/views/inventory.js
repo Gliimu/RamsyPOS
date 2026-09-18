@@ -1,5 +1,6 @@
 // inventory.js
 import { state, clearUser } from '../state.js';
+import { getSidebar } from '../layouts/sidebar.js';
 import { getItems, addItem, deleteItem } from '../api.js';
 
 export async function renderInventory(container) {
@@ -9,12 +10,7 @@ export async function renderInventory(container) {
     container.innerHTML = `
         <div class="app-layout">
             <aside class="sidebar">
-                <div class="sidebar-logo">
-                    <img src="assets/logo.png" alt="RamsyPOS">
-                </div>
-                <div class="nav-item" onclick="window.location.hash='#dashboard'">📊 Dashboard</div>
-                <div class="nav-item" onclick="window.location.hash='#pos'">🛒 Point of Sale</div>
-                <div class="nav-item active">📦 Inventory</div>
+                ${getSidebar('inventory', user.role)}
             </aside>
             <header class="topbar">
                 <h2>Inventory Management</h2>
@@ -25,8 +21,6 @@ export async function renderInventory(container) {
             </header>
             <main class="main-content">
                 <div style="display: grid; grid-template-columns: 300px 1fr; gap: 20px;">
-                    
-                    <!-- Add Item Form -->
                     <div style="background: white; padding: 20px; border-radius: 8px; height: fit-content;">
                         <h3 style="margin-bottom: 20px;">Add New Item</h3>
                         <form id="add-item-form" style="display: flex; flex-direction: column; gap: 15px;">
@@ -36,12 +30,11 @@ export async function renderInventory(container) {
                                 <option value="gym">Gym</option>
                                 <option value="bar">Bar</option>
                                 <option value="restaurant">Restaurant</option>
+                                <option value="saloon">Saloon</option>
                             </select>
                             <button type="submit" style="padding: 10px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Add Item</button>
                         </form>
                     </div>
-
-                    <!-- Items Table -->
                     <div style="background: white; padding: 20px; border-radius: 8px;">
                         <h3 style="margin-bottom: 20px;">Current Items</h3>
                         <table style="width: 100%; border-collapse: collapse;">
@@ -53,12 +46,9 @@ export async function renderInventory(container) {
                                     <th style="padding: 10px;">Action</th>
                                 </tr>
                             </thead>
-                            <tbody id="inventory-table">
-                                <!-- Rows injected here -->
-                            </tbody>
+                            <tbody id="inventory-table"></tbody>
                         </table>
                     </div>
-                    
                 </div>
             </main>
         </div>
@@ -76,10 +66,9 @@ export async function renderInventory(container) {
         const category = document.getElementById('item-category').value;
         
         await addItem(name, price, category);
-        items = await getItems(); // refresh local array
+        items = await getItems();
         renderTable(items);
-        
-        e.target.reset(); // clear form
+        e.target.reset();
     });
 
     function renderTable(itemsArray) {
@@ -97,7 +86,6 @@ export async function renderInventory(container) {
             </tr>
         `).join('');
 
-        // Attach delete listeners
         document.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 const id = parseInt(e.target.dataset.id);
