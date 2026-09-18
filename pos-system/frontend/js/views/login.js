@@ -14,8 +14,8 @@ export function renderLogin(container) {
                 
                 <form id="login-form" style="display: flex; flex-direction: column; gap: 15px;">
                     <div>
-                        <label style="font-size: 14px; color: var(--text-muted); margin-bottom: 5px; display: block;">Email Address</label>
-                        <input type="email" id="email" placeholder="you@company.com" required style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px;">
+                        <label style="font-size: 14px; color: var(--text-muted); margin-bottom: 5px; display: block;">Username</label>
+                        <input type="text" id="username" placeholder="Enter your username" required style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px;">
                     </div>
                     <div>
                         <label style="font-size: 14px; color: var(--text-muted); margin-bottom: 5px; display: block;">Password</label>
@@ -25,7 +25,7 @@ export function renderLogin(container) {
                 </form>
                 
                 <p style="text-align: center; color: var(--text-muted); font-size: 12px; margin-top: 20px;">
-                    Make sure you have added a user in your Supabase Dashboard.
+                    Default password is Ramsy4u&me
                 </p>
             </div>
         </div>
@@ -33,19 +33,20 @@ export function renderLogin(container) {
 
     document.getElementById('login-form').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const email = document.getElementById('email').value;
+        const rawUsername = document.getElementById('username').value.trim().toLowerCase().replace(/\s+/g, '');
         const password = document.getElementById('password').value;
+        
+        // Convert username to fake email for Supabase Auth
+        const fakeEmail = `${rawUsername}@ramsypos.app`;
 
         try {
-            // 1. Sign in with Supabase Auth
             const { data, error } = await supabase.auth.signInWithPassword({
-                email: email,
+                email: fakeEmail,
                 password: password,
             });
 
             if (error) throw error;
 
-            // 2. Fetch the user's role from the 'profiles' table
             const { data: profile, error: profileError } = await supabase
                 .from('profiles')
                 .select('full_name, role, category')
@@ -54,7 +55,6 @@ export function renderLogin(container) {
 
             if (profileError) throw profileError;
 
-            // 3. Set user state in our app and redirect
             setUser(profile.full_name, profile.role, profile.category);
             
             if (profile.role === 'manager' || profile.role === 'admin') {
