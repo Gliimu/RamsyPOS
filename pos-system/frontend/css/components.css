@@ -195,3 +195,13 @@ body.dark-mode .pos-item:hover {
     background: var(--bg);
     border-color: var(--border);
 }
+
+
+/* Transaction History Row Hover */
+.tx-row {
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+}
+.tx-row:hover {
+    background-color: var(--bg);
+}
