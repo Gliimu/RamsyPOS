@@ -2,7 +2,7 @@
 import { state, clearUser } from '../state.js';
 
 export function renderPos(container) {
-    const user = state.user || { name: 'Guest', role: 'cashier' };
+    const user = state.user || { name: 'Guest', role: 'pos attendant' };
     
     container.innerHTML = `
         <div class="app-layout">
