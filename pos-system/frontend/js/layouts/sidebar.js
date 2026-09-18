@@ -1,10 +1,10 @@
 // sidebar.js
 export function getSidebar(activePage, userRole) {
     return `
-        <div class="sidebar-logo">
-            <img src="assets/logo.png" alt="RamsyPOS">
+        <div class="sidebar-logo" style="text-align: left; padding-left: 5px; margin-bottom: 1.5rem;">
+            <img src="assets/logo.png" alt="RamsyPOS" style="height: 40px;">
         </div>
-        <div class="nav-item ${activePage === 'dashboard' ? 'active' : ''}" onclick="window.location.hash='#dashboard'">📊 Dashboard</div>
+        <div class="nav-item ${activePage === 'dashboard' ? 'active' : ''}" onclick="window.location.hash='#dashboard'">📊 Analytics</div>
         <div class="nav-item ${activePage === 'pos' ? 'active' : ''}" onclick="window.location.hash='#pos'">🛒 Point of Sale</div>
         
         ${userRole === 'admin' || userRole === 'manager' ? `
