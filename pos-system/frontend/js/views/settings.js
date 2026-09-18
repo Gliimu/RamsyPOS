@@ -32,7 +32,7 @@ export function renderSettings(container) {
                         <form id="update-password-form" style="display: flex; flex-direction: column; gap: 15px;">
                             <input type="password" id="new-password" placeholder="New Password" required minlength="6" style="padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--card-bg); color: var(--text);">
                             <input type="password" id="confirm-password" placeholder="Confirm New Password" required minlength="6" style="padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--card-bg); color: var(--text);">
-                            <button type="submit" style="padding: 10px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Update Password</button>
+                            <button type="submit" style="padding: 10px; background: #b8860b; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Update Password</button>
                         </form>
                     </div>
 
