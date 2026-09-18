@@ -13,8 +13,8 @@ export function renderLogin(container) {
                 
                 <form id="login-form" style="display: flex; flex-direction: column; gap: 15px;">
                     <div>
-                        <label style="font-size: 14px; color: var(--text-muted); margin-bottom: 5px; display: block;">Username</label>
-                        <input type="text" id="username" placeholder="Enter username" required style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px;">
+                        <label style="font-size: 14px; color: var(--text-muted); margin-bottom: 5px; display: block;">Email Address</label>
+                        <input type="email" id="email" placeholder="you@company.com" required style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px;">
                     </div>
                     <div>
                         <label style="font-size: 14px; color: var(--text-muted); margin-bottom: 5px; display: block;">Password</label>
@@ -24,7 +24,7 @@ export function renderLogin(container) {
                 </form>
                 
                 <p style="text-align: center; color: var(--text-muted); font-size: 12px; margin-top: 20px;">
-                    Mock Logins: admin/admin, manager/manager, pos/pos
+                    Mock Logins: admin@ramsy.com / admin123 <br> pos@ramsy.com / pos123
                 </p>
             </div>
         </div>
@@ -32,20 +32,21 @@ export function renderLogin(container) {
 
     document.getElementById('login-form').addEventListener('submit', (e) => {
         e.preventDefault();
-        const username = document.getElementById('username').value;
+        const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
 
-        if (username === 'admin' && password === 'admin') {
-            setUser('Admin User', 'admin');
+        // Mock Authentication Logic (Will be replaced by Supabase Auth)
+        if (email === 'admin@ramsy.com' && password === 'admin123') {
+            setUser('Admin Manager', 'admin');
             window.location.hash = '#dashboard';
-        } else if (username === 'manager' && password === 'manager') {
+        } else if (email === 'manager@ramsy.com' && password === 'manager123') {
             setUser('System Manager', 'manager');
             window.location.hash = '#dashboard';
-        } else if (username === 'pos' && password === 'pos') {
+        } else if (email === 'pos@ramsy.com' && password === 'pos123') {
             setUser('POS Attendant', 'pos_attendant');
             window.location.hash = '#pos';
         } else {
-            alert('Invalid credentials! Use admin/admin, manager/manager, or pos/pos');
+            alert('Invalid credentials! Check the mock logins below the button.');
         }
     });
 }
