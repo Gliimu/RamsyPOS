@@ -6,6 +6,9 @@ import { supabase } from '../config/supabaseClient.js';
 export async function renderDashboard(container) {
     const user = state.user || { name: 'Guest', role: 'admin' };
     
+    // Fetch team members for the dropdown filter
+    const { data: profiles } = await supabase.from('profiles').select('full_name').order('full_name', { ascending: true });
+    
     container.innerHTML = `
         <div class="app-layout">
             <aside class="sidebar">
@@ -21,20 +24,38 @@ export async function renderDashboard(container) {
                 </div>
             </header>
             <main class="main-content">
-                <div style="margin-bottom: 20px; display: flex; gap: 10px;">
-                    <button class="filter-btn active" data-range="today">Today</button>
-                    <button class="filter-btn" data-range="month">This Month</button>
-                    <button class="filter-btn" data-range="all">All Time</button>
+                
+                <!-- Stats Container (At Top) -->
+                <div id="stats-container" style="background: var(--card-bg); padding: 25px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-around; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <div style="text-align: center;">
+                        <h3 style="color: var(--text-muted); font-size: 14px; margin-bottom: 5px;">Revenue</h3>
+                        <p id="stat-revenue" style="font-size: 32px; font-weight: bold; color: var(--success);">₦0</p>
+                    </div>
+                    <div style="width: 1px; height: 50px; background: var(--border);"></div>
+                    <div style="text-align: center;">
+                        <h3 style="color: var(--text-muted); font-size: 14px; margin-bottom: 5px;">Transactions</h3>
+                        <p id="stat-transactions" style="font-size: 32px; font-weight: bold; color: var(--primary);">0</p>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <div style="display: flex; gap: 10px;">
+                        <button class="filter-btn active" data-range="today">Today</button>
+                        <button class="filter-btn" data-range="month">This Month</button>
+                        <button class="filter-btn" data-range="all">All Time</button>
+                    </div>
+                    <select id="attendant-filter" style="padding: 8px 16px; border: 1px solid var(--border); border-radius: 6px; background: var(--card-bg); color: var(--text); cursor: pointer;">
+                        <option value="all">All Attendants</option>
+                        ${profiles ? profiles.map(p => `<option value="${p.full_name}">${p.full_name}</option>`).join('') : ''}
+                    </select>
                 </div>
                 
-                <div id="dashboard-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
-                    <p style="color: var(--text-muted);">Loading analytics...</p>
-                </div>
-                
+                <!-- Recent Transactions Table -->
                 <div style="background: var(--card-bg); padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                     <h3 style="color: var(--text);">Recent Transactions</h3>
                     <div id="recent-sales" style="margin-top: 15px;">
-                        <p style="color: var(--text-muted);">Loading recent sales...</p>
+                        <p style="color: var(--text-muted);">Loading...</p>
                     </div>
                 </div>
             </main>
@@ -51,14 +72,21 @@ export async function renderDashboard(container) {
         btn.addEventListener('click', (e) => {
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             e.target.classList.add('active');
-            loadAnalytics(e.target.dataset.range);
+            const range = e.target.dataset.range;
+            const attendant = document.getElementById('attendant-filter').value;
+            loadAnalytics(range, attendant);
         });
     });
 
-    await loadAnalytics('today');
+    document.getElementById('attendant-filter').addEventListener('change', (e) => {
+        const activeRange = document.querySelector('.filter-btn.active').dataset.range;
+        loadAnalytics(activeRange, e.target.value);
+    });
+
+    await loadAnalytics('today', 'all');
 }
 
-async function loadAnalytics(range) {
+async function loadAnalytics(range, attendant) {
     const { data: allSales, error } = await supabase
         .from('sales')
         .select('*')
@@ -80,27 +108,18 @@ async function loadAnalytics(range) {
         filteredSales = allSales.filter(sale => sale.created_at.startsWith(monthStr));
     }
 
-    const revenue = filteredSales.reduce((sum, sale) => sum + sale.total_amount, 0);
-    const allTimeRevenue = allSales.reduce((sum, sale) => sum + sale.total_amount, 0);
+    if (attendant !== 'all') {
+        filteredSales = filteredSales.filter(sale => sale.attendant_name === attendant);
+    }
 
-    document.getElementById('dashboard-stats').innerHTML = `
-        <div style="background: var(--card-bg); padding: 20px; border-radius: 8px; border-left: 4px solid var(--success);">
-            <h3 style="color: var(--text-muted); font-size: 14px; margin-bottom: 5px;">Revenue</h3>
-            <p style="font-size: 28px; font-weight: bold; color: var(--text);">₦${revenue.toLocaleString()}</p>
-        </div>
-        <div style="background: var(--card-bg); padding: 20px; border-radius: 8px; border-left: 4px solid var(--primary);">
-            <h3 style="color: var(--text-muted); font-size: 14px; margin-bottom: 5px;">Transactions</h3>
-            <p style="font-size: 28px; font-weight: bold; color: var(--text);">${filteredSales.length}</p>
-        </div>
-        <div style="background: var(--card-bg); padding: 20px; border-radius: 8px; border-left: 4px solid var(--danger);">
-            <h3 style="color: var(--text-muted); font-size: 14px; margin-bottom: 5px;">All-Time Revenue</h3>
-            <p style="font-size: 28px; font-weight: bold; color: var(--text);">₦${allTimeRevenue.toLocaleString()}</p>
-        </div>
-    `;
+    const revenue = filteredSales.reduce((sum, sale) => sum + sale.total_amount, 0);
+    
+    document.getElementById('stat-revenue').innerText = `₦${revenue.toLocaleString()}`;
+    document.getElementById('stat-transactions').innerText = filteredSales.length;
 
     const recentSalesContainer = document.getElementById('recent-sales');
     if (filteredSales.length === 0) {
-        recentSalesContainer.innerHTML = '<p style="color: var(--text-muted);">No sales recorded for this period.</p>';
+        recentSalesContainer.innerHTML = '<p style="color: var(--text-muted);">No sales recorded for this period/attendant.</p>';
         return;
     }
 
