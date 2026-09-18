@@ -24,7 +24,7 @@ export function renderLogin(container) {
                 </form>
                 
                 <p style="text-align: center; color: var(--text-muted); font-size: 12px; margin-top: 20px;">
-                    Mock Logins: admin/admin or pos/pos
+                    Mock Logins: admin/admin, manager/manager, pos/pos
                 </p>
             </div>
         </div>
@@ -35,15 +35,17 @@ export function renderLogin(container) {
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
 
-        // Mock Authentication Logic
         if (username === 'admin' && password === 'admin') {
-            setUser('Admin Manager', 'admin');
+            setUser('Admin User', 'admin');
+            window.location.hash = '#dashboard';
+        } else if (username === 'manager' && password === 'manager') {
+            setUser('System Manager', 'manager');
             window.location.hash = '#dashboard';
         } else if (username === 'pos' && password === 'pos') {
             setUser('POS Attendant', 'pos_attendant');
             window.location.hash = '#pos';
         } else {
-            alert('Invalid credentials! Use admin/admin or pos/pos');
+            alert('Invalid credentials! Use admin/admin, manager/manager, or pos/pos');
         }
     });
 }
