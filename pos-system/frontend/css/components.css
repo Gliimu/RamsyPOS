@@ -111,3 +111,21 @@
 .checkout-btn:hover {
     background: #15803d;
 }
+
+
+/* Dark Mode overrides for components */
+body.dark-mode .tab-btn {
+    background: var(--card-bg);
+    color: var(--text);
+    border-color: var(--border);
+}
+
+body.dark-mode .tab-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+body.dark-mode .pos-item:hover {
+    border-color: var(--primary);
+}
