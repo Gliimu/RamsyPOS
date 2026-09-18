@@ -18,8 +18,8 @@ export function printReceipt(cart, total, attendantName) {
             <img src="assets/logo.png" alt="RamsyPOS">
             <h2 style="margin: 0; font-size: 18px;">Ramsy Paradise</h2>
             <p style="margin: 2px 0;">Hotel & Suites</p>
-            <p style="margin: 2px 0;">123 Business Street, Lagos</p>
-            <p style="margin: 2px 0;">Tel: 080XXXXXXX</p>
+            <p style="margin: 2px 0;">Maitama 2, Berger Quarry Road, FCT-Abuja</p>
+            <p style="margin: 2px 0;">Tel: +234 906 155 5082</p>
             <p style="margin: 5px 0 0 0;">${date}</p>
         </div>
     `;
@@ -44,8 +44,8 @@ export function printReceipt(cart, total, attendantName) {
             ${itemsTable}
             ${totalDiv}
             <div class="receipt-footer">
-                <p>Attended by: ${attendantName}</p>
                 <p style="margin-top: 10px; font-weight: bold;">Thank you for patronizing Ramsy Paradise Hotel & Suites!</p>
+                <p>Attended by: ${attendantName}</p>
             </div>
         </div>
     `;
