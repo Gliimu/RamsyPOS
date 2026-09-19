@@ -45,7 +45,7 @@ export async function renderDashboard(container) {
                         </select>
                         <input type="date" id="date-filter" class="filter-btn" style="cursor: pointer;" />
                     </div>
-                    <select id="attendant-filter" class="filter-btn" style="cursor: pointer; width:40px; align-self:right;">
+                    <select id="attendant-filter" class="filter-btn" style="cursor: pointer; width:85px;">
                         <option value="all">All Attendants</option>
                         ${profiles ? profiles.map(p => `<option value="${p.full_name}">${p.full_name}</option>`).join('') : ''}
                     </select>
