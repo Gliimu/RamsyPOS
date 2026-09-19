@@ -298,11 +298,11 @@ select:focus {
     width: 100%;
     height: 100%;
     background-image: url('../assets/background.png');
-    background-size: cover; /* Stretches image to cover entire screen */
+    background-size: cover; 
     background-position: center;
     background-repeat: no-repeat;
-    opacity: 0.7; /* Your requested opacity */
-    z-index: -1; /* Puts it behind the card */
+    opacity: 0.45; /* Reduced opacity so it's subtle */
+    z-index: -1; 
 }
 
 .login-card {
@@ -362,6 +362,47 @@ body.dark-mode .login-card {
     margin-bottom: 8px;
     display: block;
     font-weight: 500;
+}
+
+.login-input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 15px;
+    background: var(--bg);
+    color: var(--text);
+    transition: all 0.2s ease;
+}
+
+.login-input:focus {
+    outline: none;
+    border-color: #b8860b;
+    box-shadow: 0 0 0 3px rgba(184, 134, 11, 0.1);
+    background: var(--card-bg);
+}
+
+/* Dedicated Login Button Style (Matches Input fields perfectly) */
+.login-form button[type="submit"] {
+    width: 100%;
+    padding: 14px 16px; /* Exact same padding as .login-input */
+    border: none;
+    border-radius: 10px; /* Exact same radius as .login-input */
+    background-color: #b8860b;
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    margin-top: 10px;
+}
+
+.login-form button[type="submit"]:hover {
+    background-color: #9a7408;
+}
+
+.login-form button[type="submit"]:active {
+    transform: scale(0.98);
 }
 
 .login-footer {
