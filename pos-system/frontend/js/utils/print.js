@@ -17,7 +17,6 @@ export function printReceipt(cart, total, attendantName, modeOfPayment) {
         <div class="receipt-header">
             <img src="assets/logo.png" alt="RamsyPOS">
             <h2 style="margin: 0; font-size: 18px;">Ramsy Paradise</h2>
-            <p style="margin: 2px 0;">Hotel & Suites</p>
             <p style="margin: 2px 0;">Maitama 2, Berger Quarry Road, Mpape, Abuja</p>
             <p style="margin: 2px 0;">Tel: +2349 06155 5082</p>
             <p style="margin: 5px 0 0 0;">${date}</p>
@@ -47,8 +46,8 @@ export function printReceipt(cart, total, attendantName, modeOfPayment) {
             ${itemsTable}
             ${totalDiv}
             <div class="receipt-footer">
-                <p>Attended by: ${attendantName}</p>
-                <p style="margin-top: 10px; font-weight: bold;">Thank you for patronizing Ramsy Paradise Hotel & Suites!</p>
+                <p style="margin-top: 10px; font-weight: bold;">Thank you for patronizing us!</p>
+                <p>Attendant: ${attendantName}</p>
             </div>
         </div>
     `;
@@ -60,7 +59,7 @@ export function printReceipt(cart, total, attendantName, modeOfPayment) {
             ${itemsTable}
             ${totalDiv}
             <div class="receipt-footer">
-                <p>Attended by: ${attendantName}</p>
+                <p>Attendant: ${attendantName}</p>
                 <p style="margin-top: 10px; font-weight: bold;">*** ATTENDANT COPY ***</p>
             </div>
         </div>
