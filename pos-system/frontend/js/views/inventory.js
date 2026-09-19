@@ -36,7 +36,7 @@ export async function renderInventory(container) {
                                 <option value="services">Services</option>
                             </select>
                             <input type="file" id="item-image" accept="image/*" style="padding: 10px; color: var(--text);">
-                            <button type="submit">Add Item</button>
+                            <button type="submit" style="padding: 10px; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Add Item</button>
                         </form>
                     </div>
                     <div style="background: var(--card-bg); padding: 20px; border-radius: 8px;">
