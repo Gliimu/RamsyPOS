@@ -35,7 +35,7 @@ export function printReceipt(cart, total, attendantName, modeOfPayment) {
             <span>₦${total.toLocaleString()}</span>
         </div>
         <div style="text-align: center; margin-bottom: 15px;">
-            <p style="margin: 0; font-weight: bold;">Payment Method: ${modeOfPayment}</p>
+            <p style="margin: 0;">Payment Method: ${modeOfPayment}</p>
         </div>
     `;
 
