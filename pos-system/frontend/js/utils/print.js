@@ -18,8 +18,8 @@ export function printReceipt(cart, total, attendantName, modeOfPayment) {
             <img src="assets/logo.png" alt="RamsyPOS">
             <h2 style="margin: 0; font-size: 18px;">Ramsy Paradise</h2>
             <p style="margin: 2px 0;">Hotel & Suites</p>
-            <p style="margin: 2px 0;">123 Business Street, Lagos</p>
-            <p style="margin: 2px 0;">Tel: 080XXXXXXX</p>
+            <p style="margin: 2px 0;">Maitama 2, Berger Quarry Road, Mpape, Abuja</p>
+            <p style="margin: 2px 0;">Tel: +2349 06155 5082</p>
             <p style="margin: 5px 0 0 0;">${date}</p>
         </div>
     `;
