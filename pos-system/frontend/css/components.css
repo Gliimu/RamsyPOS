@@ -301,7 +301,7 @@ select:focus {
     background-size: cover; 
     background-position: center;
     background-repeat: no-repeat;
-    opacity: 0.32; /* Reduced opacity so it's subtle */
+    opacity: 0.12; /* Reduced opacity so it's subtle */
     z-index: -1; 
 }
 
