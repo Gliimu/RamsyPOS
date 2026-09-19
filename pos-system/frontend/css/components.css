@@ -302,7 +302,8 @@ select:focus {
     background-position: center;
     background-repeat: no-repeat;
     opacity: 0.12; /* Reduced opacity so it's subtle */
-    z-index: -1; 
+    z-index: -1;
+    filter: brightness(0.8) contrast(1.1);
 }
 
 .login-card {
