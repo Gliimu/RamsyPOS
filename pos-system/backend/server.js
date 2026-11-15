@@ -123,7 +123,30 @@ app.get('/api/subscription/:userId', async (req, res) => {
     if (error && error.code !== 'PGRST116') throw error;
 
     if (!data) {
-      return res.status(404).json({ error: 'No subscription found' });
+      // Auto-create a trial subscription for existing users who don't have one
+      const trialStart = new Date();
+      const trialEnd = new Date();
+      trialEnd.setDate(trialEnd.getDate() + 3);
+
+      const { data: newSub, error: insertError } = await supabaseAdmin
+        .from('subscriptions')
+        .insert({
+          user_id: userId,
+          plan: 'trial',
+          status: 'trial',
+          trial_start_date: trialStart.toISOString(),
+          trial_end_date: trialEnd.toISOString()
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      return res.status(200).json({
+        ...newSub,
+        is_active: true,
+        expiry_date: trialEnd.toISOString()
+      });
     }
 
     // Check if subscription is still active
