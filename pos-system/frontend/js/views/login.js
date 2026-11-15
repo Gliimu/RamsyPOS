@@ -1,5 +1,6 @@
 // login.js
 import { setUser } from '../state.js';
+import { showModal } from '../utils/modal.js';
 import { supabase } from '../config/supabaseClient.js';
 
 export function renderLogin(container) {
@@ -63,7 +64,7 @@ export function renderLogin(container) {
             }
 
         } catch (error) {
-            alert('Login failed: ' + error.message);
+            await showModal('Login failed: ' + error.message);
         }
     });
 }
