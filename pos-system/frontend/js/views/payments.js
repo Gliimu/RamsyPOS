@@ -5,8 +5,6 @@ import { supabase } from '../config/supabaseClient.js';
 import { showModal } from '../utils/modal.js';
 import { getSubscriptionStatus, initializePayment, verifyPayment, getPricing, getDaysUntilExpiry } from '../utils/subscription.js';
 
-const BACKEND_URL = 'https://ramsypos-backend.onrender.com';
-
 export async function renderPayments(container) {
     const user = state.user || { name: 'Guest', role: 'manager' };
     const { data: { session } } = await supabase.auth.getSession();
@@ -23,10 +21,10 @@ export async function renderPayments(container) {
     container.innerHTML = `
         <div class="app-layout">
             <aside class="sidebar">
-                ${getSidebar('payments', user.role)}
+                ${getSidebar('payments', user.role, state.subscriptionActive)}
             </aside>
             <header class="topbar">
-                <h2>Subscription & Payments</h2>
+                <h2>Usage</h2>
                 <div style="display: flex; align-items: center; gap: 15px;">
                     <span>${user.name}</span>
                     <button id="logout-btn" class="icon-btn" title="Logout">
@@ -36,7 +34,6 @@ export async function renderPayments(container) {
             </header>
             <main class="main-content">
                 
-                <!-- Subscription Status Card -->
                 <div style="background: var(--card-bg); padding: 25px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                     <h3 style="color: var(--text); margin-bottom: 15px;">Current Status</h3>
                     ${subscription ? `
@@ -65,7 +62,6 @@ export async function renderPayments(container) {
                     `}
                 </div>
 
-                <!-- Pricing Cards -->
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
                     ${Object.entries(pricing).map(([key, plan]) => `
                         <div style="background: var(--card-bg); padding: 30px; border-radius: 12px; text-align: center; border: 2px solid ${key === 'biannual' ? '#b8860b' : 'var(--border)'}; position: relative; ${key === 'biannual' ? 'transform: scale(1.05);' : ''}">
@@ -78,13 +74,11 @@ export async function renderPayments(container) {
                     `).join('')}
                 </div>
 
-                <!-- Payment History -->
                 <div style="background: var(--card-bg); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
                     <h3 style="color: var(--text); margin-bottom: 15px;">Payment History</h3>
                     <div id="payment-history" style="color: var(--text-muted);">Loading...</div>
                 </div>
 
-                <!-- Links -->
                 <div style="display: flex; gap: 20px; justify-content: center; margin-top: 30px;">
                     <a href="#terms" style="color: var(--primary); text-decoration: none;">Terms of Usage</a>
                     <span style="color: var(--text-muted);">|</span>
@@ -100,7 +94,6 @@ export async function renderPayments(container) {
         window.location.hash = '#login';
     });
 
-    // Pay button handlers
     document.querySelectorAll('.pay-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             const plan = e.target.dataset.plan;
@@ -108,7 +101,6 @@ export async function renderPayments(container) {
             try {
                 const result = await initializePayment(userId, plan, session?.user?.email);
                 if (result && result.authorization_url) {
-                    // Redirect to Paystack
                     window.location.href = result.authorization_url;
                 } else {
                     await showModal('Failed to initialize payment. Please try again.');
@@ -119,21 +111,17 @@ export async function renderPayments(container) {
         });
     });
 
-    // Check for payment verification (after Paystack redirect)
     const urlParams = new URLSearchParams(window.location.search);
     const reference = urlParams.get('reference');
     if (reference) {
         const result = await verifyPayment(reference);
         if (result) {
             await showModal('Payment successful! Your subscription is now active.');
-            // Clear the reference from URL
             window.history.replaceState({}, document.title, window.location.pathname);
-            // Reload to update status
             window.location.reload();
         }
     }
 
-    // Load payment history
     await loadPaymentHistory(userId);
 }
 
