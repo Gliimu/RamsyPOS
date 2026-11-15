@@ -1,5 +1,6 @@
 // team.js
 import { state, clearUser } from '../state.js';
+import { showModal, showConfirm } from '../utils/modal.js';
 import { getSidebar } from '../layouts/sidebar.js';
 import { supabase } from '../config/supabaseClient.js';
 
@@ -147,12 +148,12 @@ export async function renderTeam(container) {
             const result = await response.json();
             if (!response.ok) throw new Error(result.error || 'Failed to create user');
             
-            alert(result.message);
+            await showModal(result.message);
             team = await getTeam();
             renderTable(team);
             e.target.reset();
         } catch (error) {
-            alert('Error adding member: ' + error.message);
+            await showModal('Error adding member: ' + error.message);
         }
     });
 
@@ -176,7 +177,7 @@ export async function renderTeam(container) {
             team = await getTeam();
             renderTable(team);
         } catch (error) {
-            alert('Error updating user: ' + error.message);
+            await showModal('Error updating user: ' + error.message);
         }
     });
 
@@ -208,7 +209,7 @@ export async function renderTeam(container) {
         document.querySelectorAll('.reset-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 const id = e.currentTarget.dataset.id;
-                if(confirm('Reset this user\'s password to Ramsy4u&me?')) {
+                if(await showConfirm('Reset this user\'s password to Ramsy4u&me?')) {
                     try {
                         const response = await fetch(`${BACKEND_URL}/api/reset-password`, {
                             method: 'POST',
@@ -219,7 +220,7 @@ export async function renderTeam(container) {
                         if (!response.ok) throw new Error(result.error);
                         alert(result.message);
                     } catch (err) {
-                        alert('Error resetting password: ' + err.message);
+                        await showModal('Error resetting password: ' + err.message);
                     }
                 }
             });
