@@ -9,7 +9,7 @@ export async function renderDashboard(container) {
     
     container.innerHTML = `
         <div class="app-layout">
-            <aside class="sidebar">${getSidebar('dashboard', user.role)}</aside>
+            <aside class="sidebar">${getSidebar('dashboard', user.role, state.subscriptionActive)}</aside>
             <header class="topbar">
                 <h2>Analytics</h2>
                 <div style="display: flex; align-items: center; gap: 15px;">
@@ -21,7 +21,6 @@ export async function renderDashboard(container) {
             </header>
             <main class="main-content">
                 
-                <!-- Stats Container -->
                 <div id="stats-container" style="background: var(--card-bg); padding: 25px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-around; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                     <div style="text-align: center;">
                         <h3 style="color: var(--text-muted); font-size: 14px; margin-bottom: 5px;">Revenue</h3>
@@ -34,7 +33,6 @@ export async function renderDashboard(container) {
                     </div>
                 </div>
 
-                <!-- Filters -->
                 <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <select id="time-filter" class="filter-btn" style="cursor: pointer;">
@@ -45,13 +43,12 @@ export async function renderDashboard(container) {
                         </select>
                         <input type="date" id="date-filter" class="filter-btn" style="cursor: pointer;" />
                     </div>
-                    <select id="attendant-filter" class="filter-btn" style="cursor: pointer; width:180px;">
+                    <select id="attendant-filter" class="filter-btn" style="cursor: pointer;">
                         <option value="all">All Attendants</option>
                         ${profiles ? profiles.map(p => `<option value="${p.full_name}">${p.full_name}</option>`).join('') : ''}
                     </select>
                 </div>
                 
-                <!-- Transaction History -->
                 <div style="background: var(--card-bg); padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                     <h3 style="color: var(--text);">Transaction History</h3>
                     <div id="recent-sales" style="margin-top: 15px; max-height: 500px; overflow-y: auto;">
@@ -61,7 +58,6 @@ export async function renderDashboard(container) {
             </main>
         </div>
 
-        <!-- Hidden Items Modal -->
         <div id="items-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:50; justify-content:center; align-items:center;">
             <div style="background:var(--card-bg); padding:30px; border-radius:12px; width:400px; max-height: 80vh; overflow-y: auto;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
@@ -156,11 +152,7 @@ async function loadAnalytics(range, attendant, specificDate) {
     document.querySelectorAll('.tx-row').forEach(row => {
         row.addEventListener('click', (e) => {
             let items = [];
-            try {
-                items = JSON.parse(e.currentTarget.dataset.items);
-            } catch (err) {
-                console.error("Error parsing items", err);
-            }
+            try { items = JSON.parse(e.currentTarget.dataset.items); } catch (err) { console.error("Error parsing items", err); }
             
             const modalList = document.getElementById('modal-items-list');
             modalList.innerHTML = items.map(item => `
