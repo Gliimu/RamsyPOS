@@ -1,5 +1,6 @@
 // settings.js
 import { state, clearUser } from '../state.js';
+import { showModal } from '../utils/modal.js';
 import { getSidebar } from '../layouts/sidebar.js';
 import { supabase } from '../config/supabaseClient.js';
 
@@ -88,7 +89,7 @@ export function renderSettings(container) {
         const confirmPass = document.getElementById('confirm-password').value;
 
         if (newPass !== confirmPass) {
-            return alert('Passwords do not match!');
+            return await showModal('Passwords do not match!');
         }
 
         try {
@@ -98,10 +99,10 @@ export function renderSettings(container) {
 
             if (error) throw error;
 
-            alert('Password updated successfully!');
+            await showModal('Password updated successfully!');
             e.target.reset();
         } catch (error) {
-            alert('Error updating password: ' + error.message);
+            await showModal('Error updating password: ' + error.message);
         }
     });
 }
