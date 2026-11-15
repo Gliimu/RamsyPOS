@@ -1,10 +1,10 @@
 // pos.js
 import { state, clearUser } from '../state.js';
-import { showModal } from '../utils/modal.js';
 import { getItems, saveSale } from '../api.js';
 import { getSidebar } from '../layouts/sidebar.js';
 import { printReceipt } from '../utils/print.js';
 import { supabase } from '../config/supabaseClient.js';
+import { showModal } from '../utils/modal.js';
 
 let cart = [];
 let currentCategory = 'all'; 
@@ -18,7 +18,7 @@ export async function renderPos(container) {
     container.innerHTML = `
         <div class="app-layout">
             <aside class="sidebar">
-                ${getSidebar('pos', user.role)}
+                ${getSidebar('pos', user.role, state.subscriptionActive)}
             </aside>
             <header class="topbar">
                 <h2>Point of Sale</h2>
@@ -61,7 +61,6 @@ export async function renderPos(container) {
                             <span style="color: var(--text);">₦<span id="cart-total">0</span></span>
                         </div>
 
-                        <!-- Mode of Payment -->
                         <select id="mop-select" class="mop-select">
                             <option value="Cash">Cash (Withdrawal)</option>
                             <option value="Transfer">Transfer</option>
@@ -192,7 +191,6 @@ async function checkout() {
     const checkoutBtn = document.getElementById('checkout-btn');
     const mop = document.getElementById('mop-select').value;
 
-    // Disable button immediately to prevent double-clicking
     checkoutBtn.disabled = true;
     checkoutBtn.innerText = 'Processing...';
 
@@ -206,7 +204,6 @@ async function checkout() {
     } catch (error) {
         await showModal('Error saving sale: ' + error.message);
     } finally {
-        // Re-enable button after process finishes
         checkoutBtn.disabled = false;
         checkoutBtn.innerText = 'Check out';
     }
