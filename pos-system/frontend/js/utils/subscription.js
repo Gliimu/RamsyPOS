@@ -64,15 +64,16 @@ export function isWithinWarningPeriod(subscription) {
   let expiryDate;
   
   if (subscription.status === 'trial') {
-    expiryDate = new Date(subscription.trial_end_date);
+    // During trial (3 days): always show modal since trial is short
+    return true;
   } else if (subscription.status === 'active') {
     expiryDate = new Date(subscription.subscription_end_date);
+    const daysUntilExpiry = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+    // Show modal only when 5 days or less remain (days 25-30 of a 30-day subscription)
+    return daysUntilExpiry <= 5 && daysUntilExpiry > 0;
   } else {
     return false;
   }
-  
-  const daysUntilExpiry = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
-  return daysUntilExpiry <= 25 && daysUntilExpiry > 0;
 }
 
 export function getDaysUntilExpiry(subscription) {
