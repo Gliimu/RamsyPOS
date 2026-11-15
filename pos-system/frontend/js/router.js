@@ -8,7 +8,7 @@ import { renderSettings } from './views/settings.js';
 import { renderPayments } from './views/payments.js';
 import { renderTerms } from './views/terms.js';
 import { renderSupport } from './views/support.js';
-import { renderForum } from './views/forum.js';
+import { renderForum, resetUnreadCount } from './views/forum.js';
 import { state, setUser, clearUser, setSubscription } from './state.js';
 import { supabase } from './config/supabaseClient.js';
 import { getSubscriptionStatus, isSubscriptionActive, isWithinWarningPeriod, getDaysUntilExpiry } from './utils/subscription.js';
@@ -72,9 +72,9 @@ async function router() {
             return;
         }
 
-        // Show warning modal if within 25 days of expiry (but not on login page)
+        // Show warning modal if within 25 days of expiry
         if (isWithinWarningPeriod(subscription) && !session._warningShown) {
-            session._warningShown = true; // Prevent showing multiple times per session
+            session._warningShown = true;
             setTimeout(() => showExpiryWarningModal(subscription), 1500);
         }
     } else {
@@ -86,6 +86,9 @@ async function router() {
     }
 
     const view = routes[path] || renderLogin;
+    if (path === '#forum') {
+        resetUnreadCount();
+    }
     view(app);
 }
 
@@ -130,23 +133,14 @@ async function showExpiryWarningModal(subscription) {
 
     document.body.appendChild(overlay);
 
-    document.getElementById('close-warning').addEventListener('click', () => {
-        overlay.remove();
-    });
-
-    document.getElementById('later-btn').addEventListener('click', () => {
-        overlay.remove();
-    });
-
+    document.getElementById('close-warning').addEventListener('click', () => overlay.remove());
+    document.getElementById('later-btn').addEventListener('click', () => overlay.remove());
     document.getElementById('renew-now-btn').addEventListener('click', () => {
         overlay.remove();
         window.location.hash = '#payments';
     });
-
     overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) {
-            overlay.remove();
-        }
+        if (e.target === overlay) overlay.remove();
     });
 }
 
