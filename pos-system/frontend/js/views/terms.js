@@ -9,7 +9,7 @@ export function renderTerms(container) {
     container.innerHTML = `
         <div class="app-layout">
             <aside class="sidebar">
-                ${getSidebar('terms', user.role)}
+                ${getSidebar('terms', user.role, state.subscriptionActive)}
             </aside>
             <header class="topbar">
                 <h2>Terms of Usage</h2>
