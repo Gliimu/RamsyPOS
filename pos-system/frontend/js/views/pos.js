@@ -1,5 +1,6 @@
 // pos.js
 import { state, clearUser } from '../state.js';
+import { showModal } from '../utils/modal.js';
 import { getItems, saveSale } from '../api.js';
 import { getSidebar } from '../layouts/sidebar.js';
 import { printReceipt } from '../utils/print.js';
