@@ -184,7 +184,7 @@ window.updateQty = (itemId, change) => {
 
 async function checkout() {
     if (cart.length === 0) {
-        alert('Cart is empty!');
+        await showModal('Cart is empty!');
         return;
     }
 
@@ -203,7 +203,7 @@ async function checkout() {
         cart = [];
         renderCart();
     } catch (error) {
-        alert('Error saving sale: ' + error.message);
+        await showModal('Error saving sale: ' + error.message);
     } finally {
         // Re-enable button after process finishes
         checkoutBtn.disabled = false;
