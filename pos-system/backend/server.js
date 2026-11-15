@@ -349,21 +349,36 @@ app.post('/api/delete-user', async (req, res) => {
   }
 
   try {
-    // Get the manager's email from the request (we'll pass it from frontend)
-    // Actually, we need to verify the password by trying to sign in
-    // Let's get the requesting user's email from the user_id first
-    const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(user_id);
+    // 1. Delete related records first (to avoid foreign key constraint errors)
     
-    // We can't easily verify password server-side without the email
-    // So we'll do password verification on the frontend via Supabase signIn
-    // For now, let's just delete the user
+    // Delete subscriptions
+    const { error: subError } = await supabaseAdmin
+      .from('subscriptions')
+      .delete()
+      .eq('user_id', user_id);
     
+    if (subError) console.log('Note: Could not delete subscriptions:', subError.message);
+    
+    // Delete messages sent by user
+    const { error: msgError } = await supabaseAdmin
+      .from('messages')
+      .delete()
+      .eq('sender_id', user_id);
+    
+    if (msgError) console.log('Note: Could not delete messages:', msgError.message);
+    
+    // Delete profile
+    const { error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .delete()
+      .eq('id', user_id);
+    
+    if (profileError) console.log('Note: Could not delete profile:', profileError.message);
+    
+    // 2. Now delete the auth user
     const { data, error } = await supabaseAdmin.auth.admin.deleteUser(user_id);
     
     if (error) throw error;
-
-    // Also delete from profiles table
-    await supabaseAdmin.from('profiles').delete().eq('id', user_id);
 
     res.status(200).json({ message: 'User deleted successfully' });
   } catch (error) {
