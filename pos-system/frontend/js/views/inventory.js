@@ -1,9 +1,9 @@
 // inventory.js
 import { state, clearUser } from '../state.js';
-import { showModal } from '../utils/modal.js';
 import { getSidebar } from '../layouts/sidebar.js';
 import { getItems, addItem, deleteItem, updateItem } from '../api.js';
 import { supabase } from '../config/supabaseClient.js';
+import { showModal } from '../utils/modal.js';
 
 export async function renderInventory(container) {
     const user = state.user || { name: 'Guest', role: 'admin' };
@@ -13,7 +13,7 @@ export async function renderInventory(container) {
     container.innerHTML = `
         <div class="app-layout">
             <aside class="sidebar">
-                ${getSidebar('inventory', user.role)}
+                ${getSidebar('inventory', user.role, state.subscriptionActive)}
             </aside>
             <header class="topbar">
                 <h2>Inventory Management</h2>
@@ -29,20 +29,20 @@ export async function renderInventory(container) {
                     <div style="background: var(--card-bg); padding: 20px; border-radius: 8px; height: fit-content;">
                         <h3 style="margin-bottom: 20px; color: var(--text);">Add New Item</h3>
                         <form id="add-item-form" style="display: flex; flex-direction: column; gap: 15px;">
-                            <input type="text" id="item-name" placeholder="Item Name" required style="padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--card-bg); color: var(--text);">
-                            <input type="number" id="item-price" placeholder="Price (₦)" required style="padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--card-bg); color: var(--text);">
-                            <select id="item-category" style="padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--card-bg); color: var(--text);">
+                            <input type="text" id="item-name" placeholder="Item Name" required>
+                            <input type="number" id="item-price" placeholder="Price (₦)" required>
+                            <select id="item-category">
                                 <option value="food">Food</option>
                                 <option value="drinks">Drinks</option>
                                 <option value="services">Services</option>
                             </select>
-                            <input type="file" id="item-image" accept="image/*" style="padding: 10px; color: var(--text);">
-                            <button type="submit" style="padding: 10px; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Add Item</button>
+                            <input type="file" id="item-image" accept="image/*">
+                            <button type="submit">Add Item</button>
                         </form>
                     </div>
                     <div style="background: var(--card-bg); padding: 20px; border-radius: 8px;">
                         <h3 style="margin-bottom: 20px; color: var(--text);">Current Items</h3>
-                        <input type="text" id="inv-search" placeholder="Search inventory..." style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 6px; background: var(--card-bg); color: var(--text);">
+                        <input type="text" id="inv-search" placeholder="Search inventory..." style="width: 100%; margin-bottom: 15px;">
                         <table style="width: 100%; border-collapse: collapse;">
                             <thead>
                                 <tr style="text-align: left; border-bottom: 2px solid var(--border);">
@@ -50,7 +50,7 @@ export async function renderInventory(container) {
                                     <th style="padding: 10px; color: var(--text);">Name</th>
                                     <th style="padding: 10px; color: var(--text);">Category</th>
                                     <th style="padding: 10px; color: var(--text);">Price</th>
-                                    <th style="padding: 10px; color: var(--text); text-align:right;">Actions</th>
+                                    <th style="padding: 10px; color: var(--text); text-align: right;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="inventory-table"></tbody>
@@ -60,7 +60,6 @@ export async function renderInventory(container) {
             </main>
         </div>
 
-        <!-- Hidden Edit Modal -->
         <div id="edit-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:50; justify-content:center; align-items:center;">
             <div style="background:var(--card-bg); padding:30px; border-radius:12px; width:400px; box-shadow: 0 10px 15px rgba(0,0,0,0.1);">
                 <h3 style="margin-bottom:20px; color:var(--primary);">Edit Item</h3>
@@ -68,20 +67,20 @@ export async function renderInventory(container) {
                     <input type="hidden" id="edit-id">
                     <input type="hidden" id="edit-existing-image">
                     <label style="font-size: 14px; color: var(--text-muted);">Item Name</label>
-                    <input type="text" id="edit-name" placeholder="Item Name" required style="padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--card-bg); color: var(--text);">
+                    <input type="text" id="edit-name" placeholder="Item Name" required>
                     <label style="font-size: 14px; color: var(--text-muted);">Price (₦)</label>
-                    <input type="number" id="edit-price" placeholder="Price" required style="padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--card-bg); color: var(--text);">
+                    <input type="number" id="edit-price" placeholder="Price" required>
                     <label style="font-size: 14px; color: var(--text-muted);">Category</label>
-                    <select id="edit-category" style="padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--card-bg); color: var(--text);">
+                    <select id="edit-category">
                         <option value="food">Food</option>
                         <option value="drinks">Drinks</option>
                         <option value="services">Services</option>
                     </select>
                     <label style="font-size: 14px; color: var(--text-muted);">Change Image (Leave blank to keep current)</label>
-                    <input type="file" id="edit-image" accept="image/*" style="padding: 10px; color: var(--text);">
+                    <input type="file" id="edit-image" accept="image/*">
                     <div style="display:flex; gap:10px; margin-top:10px;">
-                        <button type="submit" style="flex:1; padding: 10px; background: var(--success); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Save Changes</button>
-                        <button type="button" id="cancel-edit" style="flex:1; padding: 10px; background: #6b7280; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Cancel</button>
+                        <button type="submit">Save Changes</button>
+                        <button type="button" id="cancel-edit">Cancel</button>
                     </div>
                 </form>
             </div>
@@ -148,7 +147,6 @@ export async function renderInventory(container) {
         try {
             let imageUrl = existingImage;
             
-            // If a new image is selected, upload it and replace the old URL
             if (imageFile) {
                 const fileName = `${Date.now()}_${imageFile.name}`;
                 const { data: uploadData, error: uploadError } = await supabase.storage
@@ -224,7 +222,7 @@ export async function renderInventory(container) {
                 document.getElementById('edit-price').value = item.price;
                 document.getElementById('edit-category').value = item.category;
                 document.getElementById('edit-existing-image').value = item.image_url || '';
-                document.getElementById('edit-image').value = ''; // Clear file input
+                document.getElementById('edit-image').value = '';
                 
                 document.getElementById('edit-modal').style.display = 'flex';
             });
