@@ -3,6 +3,7 @@ import { renderLogin } from './views/login.js';
 import { renderDashboard } from './views/dashboard.js';
 import { renderPos } from './views/pos.js';
 import { renderInventory } from './views/inventory.js';
+import { renderForum, resetUnreadCount } from './views/forum.js';
 import { renderTeam } from './views/team.js';
 import { renderSettings } from './views/settings.js';
 import { renderPayments } from './views/payments.js';
@@ -22,6 +23,7 @@ const routes = {
     '#settings': renderSettings,
     '#payments': renderPayments,
     '#terms': renderTerms,
+    '#forum': renderForum,
     '#support': renderSupport
 };
 
@@ -70,7 +72,10 @@ async function router() {
         }
     }
 
-    const view = routes[path] || renderLogin;
+     const view = routes[path] || renderLogin;
+    if (path === '#forum') {
+        resetUnreadCount();
+    }
     view(app);
 }
 
