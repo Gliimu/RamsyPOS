@@ -5,8 +5,12 @@ import { renderPos } from './views/pos.js';
 import { renderInventory } from './views/inventory.js';
 import { renderTeam } from './views/team.js';
 import { renderSettings } from './views/settings.js';
+import { renderPayments } from './views/payments.js';
+import { renderTerms } from './views/terms.js';
+import { renderSupport } from './views/support.js';
 import { state, setUser, clearUser } from './state.js';
 import { supabase } from './config/supabaseClient.js';
+import { getSubscriptionStatus, isSubscriptionActive } from './utils/subscription.js';
 
 const routes = {
     '/': renderLogin,
@@ -15,7 +19,10 @@ const routes = {
     '#pos': renderPos,
     '#inventory': renderInventory,
     '#team': renderTeam,
-    '#settings': renderSettings
+    '#settings': renderSettings,
+    '#payments': renderPayments,
+    '#terms': renderTerms,
+    '#support': renderSupport
 };
 
 async function router() {
@@ -35,6 +42,15 @@ async function router() {
             
             if (profile) {
                 setUser(profile.full_name, profile.role, profile.category);
+            }
+        }
+
+        // Check subscription status for POS access
+        if (path === '#pos') {
+            const subscription = await getSubscriptionStatus(session.user.id);
+            if (!isSubscriptionActive(subscription)) {
+                window.location.hash = '#payments';
+                return;
             }
         }
 
