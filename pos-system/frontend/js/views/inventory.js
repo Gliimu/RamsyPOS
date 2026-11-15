@@ -1,5 +1,6 @@
 // inventory.js
 import { state, clearUser } from '../state.js';
+import { showModal } from '../utils/modal.js';
 import { getSidebar } from '../layouts/sidebar.js';
 import { getItems, addItem, deleteItem, updateItem } from '../api.js';
 import { supabase } from '../config/supabaseClient.js';
@@ -131,7 +132,7 @@ export async function renderInventory(container) {
             renderTable(items);
             e.target.reset();
         } catch (error) {
-            alert('Error adding item: ' + error.message);
+            await showModal('Error adding item: ' + error.message);
         }
     });
 
@@ -167,10 +168,10 @@ export async function renderInventory(container) {
             items = await getItems();
             renderTable(items);
             
-            alert('Item updated successfully!');
+            await showModal('Item updated successfully!');
             document.getElementById('edit-modal').style.display = 'none';
         } catch (error) {
-            alert('Error updating item: ' + error.message);
+            await showModal('Error updating item: ' + error.message);
         }
     });
 
