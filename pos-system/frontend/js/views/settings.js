@@ -1,19 +1,18 @@
 // settings.js
 import { state, clearUser } from '../state.js';
-import { showModal } from '../utils/modal.js';
 import { getSidebar } from '../layouts/sidebar.js';
 import { supabase } from '../config/supabaseClient.js';
+import { showModal } from '../utils/modal.js';
 
 export function renderSettings(container) {
     const user = state.user || { name: 'Guest', role: 'pos_attendant' };
 
-    // Check if dark mode is already enabled
     const isDarkMode = localStorage.getItem('darkMode') === 'true';
 
     container.innerHTML = `
         <div class="app-layout">
             <aside class="sidebar">
-                ${getSidebar('settings', user.role)}
+                ${getSidebar('settings', user.role, state.subscriptionActive)}
             </aside>
             <header class="topbar">
                 <h2>Settings</h2>
@@ -27,17 +26,15 @@ export function renderSettings(container) {
             <main class="main-content">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                     
-                    <!-- Change Password Card -->
                     <div style="background: var(--card-bg); padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                         <h3 style="margin-bottom: 20px;">Change Password</h3>
                         <form id="update-password-form" style="display: flex; flex-direction: column; gap: 15px;">
-                            <input type="password" id="new-password" placeholder="New Password" required minlength="6" style="padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--card-bg); color: var(--text);">
-                            <input type="password" id="confirm-password" placeholder="Confirm New Password" required minlength="6" style="padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--card-bg); color: var(--text);">
-                            <button type="submit" style="padding: 10px; background: #b8860b; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Update Password</button>
+                            <input type="password" id="new-password" placeholder="New Password" required minlength="6">
+                            <input type="password" id="confirm-password" placeholder="Confirm New Password" required minlength="6">
+                            <button type="submit">Update Password</button>
                         </form>
                     </div>
 
-                    <!-- Appearance Card -->
                     <div style="background: var(--card-bg); padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                         <h3 style="margin-bottom: 20px;">Appearance</h3>
                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0;">
@@ -57,7 +54,6 @@ export function renderSettings(container) {
         </div>
     `;
 
-    // Add toggle slider style dynamically
     const style = document.createElement('style');
     style.innerHTML = `
         input:checked + span { background-color: var(--primary) !important; }
@@ -71,7 +67,6 @@ export function renderSettings(container) {
         window.location.hash = '#login';
     });
 
-    // Theme Toggle Logic
     document.getElementById('theme-toggle').addEventListener('change', (e) => {
         if (e.target.checked) {
             document.body.classList.add('dark-mode');
@@ -82,7 +77,6 @@ export function renderSettings(container) {
         }
     });
 
-    // Password Update Logic
     document.getElementById('update-password-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const newPass = document.getElementById('new-password').value;
