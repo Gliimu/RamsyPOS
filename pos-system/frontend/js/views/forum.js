@@ -6,7 +6,6 @@ import { showModal } from '../utils/modal.js';
 
 let messageSubscription = null;
 let allTeamMembers = [];
-let lastMessageCount = 0;
 let unreadCount = 0;
 
 export async function renderForum(container) {
@@ -14,25 +13,19 @@ export async function renderForum(container) {
     const { data: { session } } = await supabase.auth.getSession();
     const currentUserId = session?.user?.id;
     
-    // Fetch all team members for @mentions
     const { data: profiles } = await supabase
         .from('profiles')
         .select('id, full_name')
         .order('full_name', { ascending: true });
     allTeamMembers = profiles || [];
     
-    // Fetch existing messages
     const { data: messages, error } = await supabase
         .from('messages')
         .select('*')
         .order('created_at', { ascending: true })
         .limit(100);
     
-    if (error) {
-        console.error('Error fetching messages:', error);
-    }
-    
-    lastMessageCount = messages?.length || 0;
+    if (error) console.error('Error fetching messages:', error);
     
     container.innerHTML = `
         <style>
@@ -49,11 +42,13 @@ export async function renderForum(container) {
                 border-radius: 8px 8px 0 0;
             }
             .message-bubble {
-                max-width: 70%;
+                max-width: 60%;
+                width: fit-content;
                 padding: 12px 16px;
                 border-radius: 12px;
                 margin-bottom: 10px;
                 word-wrap: break-word;
+                overflow-wrap: break-word;
             }
             .message-mine {
                 background: #b8860b;
@@ -92,6 +87,7 @@ export async function renderForum(container) {
                 background: var(--card-bg);
                 border-radius: 0 0 8px 8px;
                 border-top: 1px solid var(--border);
+                position: relative;
             }
             .chat-input {
                 flex: 1;
@@ -125,6 +121,8 @@ export async function renderForum(container) {
                 z-index: 100;
                 width: 200px;
                 display: none;
+                bottom: 70px;
+                left: 15px;
             }
             .mention-item {
                 padding: 10px 15px;
@@ -141,10 +139,10 @@ export async function renderForum(container) {
         </style>
         <div class="app-layout">
             <aside class="sidebar">
-                ${getSidebar('forum', user.role)}
+                ${getSidebar('forum', user.role, state.subscriptionActive)}
             </aside>
             <header class="topbar">
-                <h2>Staff Forum</h2>
+                <h2>Forum</h2>
                 <div style="display: flex; align-items: center; gap: 15px;">
                     <span>${user.name}</span>
                     <button id="logout-btn" class="icon-btn" title="Logout">
@@ -155,7 +153,7 @@ export async function renderForum(container) {
             <main class="main-content">
                 <div class="forum-layout">
                     <div id="chat-messages" class="chat-messages"></div>
-                    <div class="chat-input-area" style="position: relative;">
+                    <div class="chat-input-area">
                         <div id="mention-dropdown" class="mention-dropdown"></div>
                         <input type="text" id="chat-input" class="chat-input" placeholder="Type a message... Use @ to mention someone">
                         <button id="send-btn" class="send-btn">Send</button>
@@ -172,17 +170,14 @@ export async function renderForum(container) {
         window.location.hash = '#login';
     });
 
-    // Render existing messages
     renderMessages(messages || [], currentUserId, user.name);
-    
-    // Scroll to bottom
     scrollToBottom();
-    
-    // Set up real-time subscription
     setupRealtimeSubscription(currentUserId, user.name);
-    
-    // Set up message input handlers
     setupMessageInput(currentUserId, user.name);
+    
+    // Reset unread count when forum is opened
+    unreadCount = 0;
+    updateNotificationBadge();
 }
 
 function renderMessages(messages, currentUserId, currentUserName) {
@@ -198,7 +193,6 @@ function renderMessages(messages, currentUserId, currentUserName) {
         const isMine = msg.sender_id === currentUserId;
         const time = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         
-        // Process @mentions in content
         let displayContent = msg.content;
         const mentionRegex = /@(\w+)/g;
         let match;
@@ -220,18 +214,12 @@ function renderMessages(messages, currentUserId, currentUserName) {
 
 function scrollToBottom() {
     const container = document.getElementById('chat-messages');
-    if (container) {
-        container.scrollTop = container.scrollHeight;
-    }
+    if (container) container.scrollTop = container.scrollHeight;
 }
 
 function setupRealtimeSubscription(currentUserId, currentUserName) {
-    // Clean up existing subscription
-    if (messageSubscription) {
-        messageSubscription.unsubscribe();
-    }
+    if (messageSubscription) messageSubscription.unsubscribe();
     
-    // Subscribe to new messages
     messageSubscription = supabase
         .channel('messages')
         .on('postgres_changes', 
@@ -240,7 +228,6 @@ function setupRealtimeSubscription(currentUserId, currentUserName) {
                 const newMessage = payload.new;
                 const isMine = newMessage.sender_id === currentUserId;
                 
-                // Append new message
                 const container = document.getElementById('chat-messages');
                 if (container) {
                     const time = new Date(newMessage.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -265,10 +252,8 @@ function setupRealtimeSubscription(currentUserId, currentUserName) {
                     container.insertAdjacentHTML('beforeend', messageHTML);
                     scrollToBottom();
                     
-                    // Check for @mentions
                     if (!isMine && newMessage.mentions) {
                         const mentions = newMessage.mentions || [];
-                        // Check if current user was mentioned (by name)
                         const currentFirstName = currentUserName.split(' ')[0].toLowerCase();
                         const wasMentioned = mentions.some(m => 
                             m.toLowerCase() === currentFirstName || 
@@ -280,13 +265,9 @@ function setupRealtimeSubscription(currentUserId, currentUserName) {
                         }
                     }
                     
-                    // Update unread count if not on forum page and message isn't mine
                     if (!isMine && window.location.hash !== '#forum') {
                         unreadCount++;
                         updateNotificationBadge();
-                    } else if (!isMine) {
-                        // We're on the forum page, don't increment unread
-                        // But still check for mentions
                     }
                 }
             }
@@ -301,21 +282,16 @@ function setupMessageInput(currentUserId, currentUserName) {
     
     let currentMentionStart = -1;
     
-    // Handle @mentions dropdown
     input.addEventListener('input', (e) => {
         const value = e.target.value;
         const cursorPos = e.target.selectionStart;
-        
-        // Find @ symbol before cursor
         const beforeCursor = value.substring(0, cursorPos);
         const atSymbolIndex = beforeCursor.lastIndexOf('@');
         
         if (atSymbolIndex !== -1) {
-            // Check if there's a space after @ (which would cancel the mention)
             const textAfterAt = value.substring(atSymbolIndex + 1, cursorPos);
             
             if (!textAfterAt.includes(' ') && textAfterAt.length >= 0) {
-                // Show dropdown with matching members
                 const searchText = textAfterAt.toLowerCase();
                 const matchingMembers = allTeamMembers.filter(m => 
                     m.full_name.toLowerCase().includes(searchText)
@@ -330,13 +306,11 @@ function setupMessageInput(currentUserId, currentUserName) {
                     `).join('');
                     mentionDropdown.style.display = 'block';
                     
-                    // Handle mention selection
                     document.querySelectorAll('.mention-item').forEach(item => {
                         item.addEventListener('click', () => {
                             const selectedName = item.dataset.name;
                             const firstName = selectedName.split(' ')[0];
                             
-                            // Replace @text with @firstName
                             const newValue = value.substring(0, currentMentionStart) + 
                                            '@' + firstName + ' ' + 
                                            value.substring(cursorPos);
@@ -345,7 +319,6 @@ function setupMessageInput(currentUserId, currentUserName) {
                             mentionDropdown.style.display = 'none';
                             input.focus();
                             
-                            // Place cursor after the mention
                             const newCursorPos = currentMentionStart + firstName.length + 2;
                             input.setSelectionRange(newCursorPos, newCursorPos);
                         });
@@ -361,19 +334,16 @@ function setupMessageInput(currentUserId, currentUserName) {
         }
     });
     
-    // Close dropdown when clicking outside
     document.addEventListener('click', (e) => {
         if (e.target !== input && !mentionDropdown.contains(e.target)) {
             mentionDropdown.style.display = 'none';
         }
     });
     
-    // Send message on button click
     sendBtn.addEventListener('click', () => {
         sendMessage(input, currentUserId, currentUserName);
     });
     
-    // Send message on Enter key
     input.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             sendMessage(input, currentUserId, currentUserName);
@@ -385,7 +355,6 @@ async function sendMessage(input, currentUserId, currentUserName) {
     const content = input.value.trim();
     if (!content) return;
     
-    // Extract mentions
     const mentions = [];
     const mentionRegex = /@(\w+)/g;
     let match;
@@ -420,7 +389,6 @@ async function showMentionModal(senderName, content) {
 }
 
 function updateNotificationBadge() {
-    // Update badge in sidebar
     const forumNav = document.querySelector('.nav-item[onclick*="forum"]');
     if (forumNav) {
         let badge = forumNav.querySelector('.notification-badge');
@@ -445,13 +413,11 @@ function updateNotificationBadge() {
     }
 }
 
-// Export function to reset unread count when forum is opened
 export function resetUnreadCount() {
     unreadCount = 0;
     updateNotificationBadge();
 }
 
-// Export function to get unread count
 export function getUnreadCount() {
     return unreadCount;
 }
